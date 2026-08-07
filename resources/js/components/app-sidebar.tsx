@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { BookOpen, CalendarDays, FolderGit2, LayoutGrid, Settings2, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -12,8 +12,11 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, systemSettings } from '@/routes';
+import { index as eventsIndex } from '@/routes/events';
+import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -21,6 +24,24 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Events',
+        href: eventsIndex(),
+        icon: CalendarDays,
+    },
+];
+
+const adminNavItems: NavItem[] = [
+    {
+        title: 'Users',
+        href: usersIndex(),
+        icon: Users,
+    },
+    {
+        title: 'System Settings',
+        href: systemSettings(),
+        icon: Settings2,
     },
 ];
 
@@ -52,8 +73,11 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
+            <SidebarSeparator className="mx-0" />
+
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                <NavMain items={adminNavItems} label="Administration" />
             </SidebarContent>
 
             <SidebarFooter>

@@ -5,6 +5,9 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorUser;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -21,13 +24,33 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             ...$this->profileRules(),
+            'business_name' => ['required', 'string', 'max:255'],
+            'business_address' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:32'],
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
+        return DB::transaction(function () use ($input): User {
+            $vendor = Vendor::create([
+                'name' => $input['business_name'],
+                'address' => $input['business_address'],
+            ]);
+
+            $user = User::create([
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'phone' => $input['phone'],
+                'password' => $input['password'],
+            ]);
+
+            VendorUser::create([
+                'vendor_id' => $vendor->id,
+                'user_id' => $user->id,
+            ]);
+
+            $user->assignRole('Vendor');
+
+            return $user;
+        });
     }
 }

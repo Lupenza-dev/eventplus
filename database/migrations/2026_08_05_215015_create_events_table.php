@@ -25,7 +25,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->integer('is_approved')->default(0)->comment('0: pending, 1: approved, 2: rejected');
             $table->string('image')->nullable();
+            $table->boolean('is_paid_event')->default(false);
             $table->softDeletes();
+            $table->uuid();
             $table->timestamps();
         });
     }

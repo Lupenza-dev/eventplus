@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_tickets', function (Blueprint $table) {
+        Schema::create('event_subscribers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->decimal('price', 10, 2);
-            $table->integer('quantity');
-            $table->text('description')->nullable();
+            $table->foreignId('subscriber_id')->constrained()->cascadeOnDelete();
+            $table->boolean('is_attending')->default(false);
             $table->softDeletes();
             $table->uuid();
             $table->timestamps();
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_tickets');
+        Schema::dropIfExists('event_subscribers');
     }
 };

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->boolean('is_active')->default(false);
             $table->softDeletes();
+            $table->uuid();
             $table->timestamps();
         });
     }
