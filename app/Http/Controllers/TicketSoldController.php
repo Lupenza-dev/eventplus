@@ -33,9 +33,23 @@ class TicketSoldController extends Controller
             ->when($filters['date_to'] ?? null, fn ($query, $to) => $query->whereDate('event_subscribers.created_at', '<=', $to))
             ->when($filters['event_id'] ?? null, fn ($query, $eventId) => $query->where('event_id', $eventId))
             ->when($filters['vendor_id'] ?? null, fn ($query, $vendorId) => $query->whereHas('event', fn ($events) => $events->where('vendor_id', $vendorId)))
-            ->latest('event_subscribers.created_at')
-            ->get()
-            ->map(fn (EventSubscriber $sale) => [
+            ->latest('event_subscribers.created_at');
+
+        $salesQuery = fn () => (clone $sales);
+
+        $eventIds = $salesQuery()->pluck('event_id')->unique();
+
+        $stats = [
+            'total' => $salesQuery()->count(),
+            'attending' => $salesQuery()->where('is_attending', true)->count(),
+            'events' => $salesQuery()->distinct('event_id')->count('event_id'),
+            'vendors' => Event::query()->whereIn('id', $eventIds)->distinct()->count('vendor_id'),
+        ];
+
+        $paginator = $sales->paginate(25)->withQueryString();
+
+        return Inertia::render('events/tickets-sold', [
+            'sales' => $paginator->through(fn (EventSubscriber $sale) => [
                 'id' => $sale->id,
                 'customer_name' => $sale->subscriber->name ?? '—',
                 'phone_number' => $sale->subscriber->phone_number,
@@ -43,11 +57,12 @@ class TicketSoldController extends Controller
                 'vendor_name' => $sale->event->vendor->name ?? '—',
                 'is_attending' => $sale->is_attending,
                 'sold_at' => $sale->created_at->toDateTimeString(),
-            ]);
-
-        return Inertia::render('tickets-sold', [
-            'sales' => $sales,
-            'events' => Event::query()->orderBy('title')->get(['id', 'title']),
+            ]),
+            'stats' => $stats,
+            'events' => Event::query()
+                ->when($filters['vendor_id'] ?? null, fn ($query, $vendorId) => $query->where('vendor_id', $vendorId))
+                ->orderBy('title')
+                ->get(['id', 'title', 'vendor_id']),
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
             'filters' => [
                 'date_from' => $filters['date_from'] ?? '',

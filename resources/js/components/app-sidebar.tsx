@@ -1,20 +1,17 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, CalendarDays, FolderGit2, LayoutGrid, Settings2, Users } from 'lucide-react';
+import { CalendarDays, LayoutGrid, Settings2, Ticket, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { dashboard, systemSettings } from '@/routes';
+import { dashboard, systemSettings, ticketsSold } from '@/routes';
 import { index as eventsIndex } from '@/routes/events';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -29,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Events',
         href: eventsIndex(),
         icon: CalendarDays,
+    },
+    {
+        title: 'Ticket Sold',
+        href: ticketsSold(),
+        icon: Ticket,
     },
 ];
 
@@ -45,18 +47,18 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+// const footerNavItems: NavItem[] = [
+//     {
+//         title: 'Repository',
+//         href: 'https://github.com/laravel/react-starter-kit',
+//         icon: FolderGit2,
+//     },
+//     {
+//         title: 'Documentation',
+//         href: 'https://laravel.com/docs/starter-kits#react',
+//         icon: BookOpen,
+//     },
+// ];
 
 export function AppSidebar() {
     return (
@@ -77,13 +79,9 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                <SidebarSeparator className="mx-2" />
                 <NavMain items={adminNavItems} label="Administration" />
             </SidebarContent>
-
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
-            </SidebarFooter>
         </Sidebar>
     );
 }

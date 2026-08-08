@@ -54,7 +54,7 @@ function ChatMockup() {
                         className="max-w-[85%] self-start rounded-2xl rounded-bl-sm bg-white px-4 py-2.5 text-sm text-[#2D3436] shadow-md"
                     >
                         Found 3 events near you! 🎉 <span className="font-semibold">Sauti za Busara</span> — Fri
-                        6:00 PM, from <span className="font-semibold text-[#00B894]">$45</span>
+                        6:00 PM, from <span className="font-semibold text-[#00B894]">TZS 45</span>
                     </motion.div>
 
                     <motion.div
