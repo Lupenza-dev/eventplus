@@ -1,10 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, MapPin, MessageCircle, Ticket } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Ticket } from 'lucide-react';
+import { PurchaseTicketDialog } from '@/components/landing/purchase-ticket-dialog';
 import Footer from '@/components/landing/footer';
 import Navbar from '@/components/landing/navbar';
 import TopBar from '@/components/landing/top-bar';
-import { contact } from '@/components/landing/data';
 import { home } from '@/routes';
 
 type EventInfo = {
@@ -31,6 +31,13 @@ type TicketItem = {
 type Props = {
     event: EventInfo;
     tickets: TicketItem[];
+    paymentPartners: PaymentPartnerItem[];
+};
+
+type PaymentPartnerItem = {
+    id: number;
+    name: string;
+    image_url: string | null;
 };
 
 function formatPrice(price: string): string {
@@ -52,26 +59,15 @@ function formatEventDate(value: string): string {
     });
 }
 
-function formatTime(value: string): string {
-    return new Date(value).toLocaleTimeString(undefined, {
-        hour: 'numeric',
-        minute: '2-digit',
-    });
-}
-
-function buyOnWhatsApp(eventName: string, ticketName: string): string {
-    const message = `Hi EventPlus! I'd like to buy a "${ticketName}" ticket for "${eventName}". Could you help me with the booking?`;
-
-    return `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-}
-
 function TicketCard({
     event,
     ticket,
+    paymentPartners,
     index,
 }: {
     event: EventInfo;
     ticket: TicketItem;
+    paymentPartners: PaymentPartnerItem[];
     index: number;
 }) {
     const soldOut = ticket.quantity <= 0;
@@ -109,26 +105,17 @@ function TicketCard({
                     <p className="text-xs text-[#2D3436]/50">Price</p>
                     <p className="text-lg font-bold text-[#2D3436]">{formatPrice(ticket.price)}</p>
                 </div>
-                <a
-                    href={soldOut ? '#' : buyOnWhatsApp(event.title, ticket.name)}
-                    target={soldOut ? undefined : '_blank'}
-                    rel={soldOut ? undefined : 'noreferrer'}
-                    aria-disabled={soldOut}
-                    className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
-                        soldOut
-                            ? 'cursor-not-allowed bg-[#2D3436]/10 text-[#2D3436]/40'
-                            : 'bg-[#00B894] text-white shadow-lg shadow-[#00B894]/25 hover:-translate-y-0.5 hover:bg-[#00A483] hover:shadow-xl hover:shadow-[#00B894]/30'
-                    }`}
-                >
-                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                    {soldOut ? 'Sold out' : 'Buy via WhatsApp'}
-                </a>
+                <PurchaseTicketDialog
+                    event={{ id: event.id, title: event.title }}
+                    ticket={ticket}
+                    paymentPartners={paymentPartners}
+                />
             </div>
         </motion.div>
     );
 }
 
-export default function EventShow({ event, tickets }: Props) {
+export default function EventShow({ event, tickets, paymentPartners }: Props) {
     const cheapest = tickets.length > 0 ? Math.min(...tickets.map((t) => Number(t.price))) : null;
     const isFree = !event.is_paid_event && (cheapest === null || cheapest === 0);
 
@@ -248,7 +235,7 @@ export default function EventShow({ event, tickets }: Props) {
                                 </div>
                                 <p className="hidden items-center gap-2 text-sm text-[#2D3436]/50 sm:flex">
                                     <Clock className="h-4 w-4" aria-hidden="true" />
-                                    Book instantly on WhatsApp
+                                    Secure your spot in seconds
                                 </p>
                             </div>
 
@@ -272,6 +259,7 @@ export default function EventShow({ event, tickets }: Props) {
                                             key={ticket.id}
                                             event={event}
                                             ticket={ticket}
+                                            paymentPartners={paymentPartners}
                                             index={i}
                                         />
                                     ))}

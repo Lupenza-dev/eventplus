@@ -4,7 +4,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventCategoryController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTicketController;
+use App\Http\Controllers\PaymentPartnerController;
 use App\Http\Controllers\PublicEventController;
+use App\Http\Controllers\TicketPurchaseController;
 use App\Http\Controllers\TicketSoldController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('events/{event}', [PublicEventController::class, 'show'])->name('events.show');
+Route::post('events/{event}/tickets/{ticket}/purchase', [TicketPurchaseController::class, 'store'])
+    ->name('events.tickets.purchase');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -36,6 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('system-settings/event-categories', EventCategoryController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('event-categories');
+    Route::resource('system-settings/payment-partners', PaymentPartnerController::class)
+        ->only(['index', 'store', 'update', 'destroy'])
+        ->names('payment-partners');
 });
 
 require __DIR__.'/settings.php';

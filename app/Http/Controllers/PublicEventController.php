@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\PaymentPartner;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,6 +31,11 @@ class PublicEventController extends Controller
             'tickets' => $event->tickets()
                 ->latest()
                 ->get(['id', 'name', 'price', 'quantity', 'description']),
+            'paymentPartners' => PaymentPartner::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'image'])
+                ->map(fn (PaymentPartner $partner) => $partner->append('image_url')),
         ]);
     }
 }

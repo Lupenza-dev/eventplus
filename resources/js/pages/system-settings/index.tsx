@@ -6,9 +6,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { systemSettings } from '@/routes';
 import { index as eventCategoriesIndex } from '@/routes/event-categories';
+import { index as paymentPartnersIndex } from '@/routes/payment-partners';
 
 const settingCards = [
     {
@@ -20,12 +20,12 @@ const settingCards = [
         available: true,
     },
     {
-        title: 'Payment Types',
+        title: 'Payment Partners',
         description:
-            'Configure the payment methods attendees can use to purchase tickets.',
+            'Manage the payment providers attendees use to purchase tickets.',
         icon: CreditCard,
-        href: null,
-        available: false,
+        href: paymentPartnersIndex(),
+        available: true,
     },
 ];
 
@@ -44,45 +44,30 @@ export default function SystemSettings() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {settingCards.map((card) =>
-                        card.available && card.href ? (
-                            <Link
-                                key={card.title}
-                                href={card.href}
-                                prefetch
-                                className="group rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                            >
-                                <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:border-primary/40 group-hover:shadow-md">
-                                    <CardHeader>
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                                <card.icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                                            </span>
-                                            <ArrowRight
-                                                className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary"
-                                                aria-hidden="true"
-                                            />
-                                        </div>
-                                        <CardTitle>{card.title}</CardTitle>
-                                        <CardDescription>{card.description}</CardDescription>
-                                    </CardHeader>
-                                </Card>
-                            </Link>
-                        ) : (
-                            <Card key={card.title} className="h-full opacity-70">
+                    {settingCards.map((card) => (
+                        <Link
+                            key={card.title}
+                            href={card.href}
+                            prefetch
+                            className="group rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                            <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:border-primary/40 group-hover:shadow-md">
                                 <CardHeader>
                                     <div className="mb-2 flex items-center justify-between">
-                                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                                            <card.icon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                            <card.icon className="h-5 w-5 text-primary" aria-hidden="true" />
                                         </span>
-                                        <Badge variant="secondary">Coming soon</Badge>
+                                        <ArrowRight
+                                            className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary"
+                                            aria-hidden="true"
+                                        />
                                     </div>
                                     <CardTitle>{card.title}</CardTitle>
                                     <CardDescription>{card.description}</CardDescription>
                                 </CardHeader>
                             </Card>
-                        ),
-                    )}
+                        </Link>
+                    ))}
                 </div>
             </div>
         </>
