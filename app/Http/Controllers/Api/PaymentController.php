@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Concerns\AzamPayTrait;
+use App\Concerns\GeminiAiTrait;
 use App\Http\Controllers\Controller;
 
 class PaymentController extends Controller
 {
-    use AzamPayTrait;
+    use AzamPayTrait,GeminiAiTrait;
 
     public function generateToken()
     {
-        $response = $this->tokenGeneration();
+        $response = $this->sendRequest('Kuna aina gani za event zinazopatikana?');
 
         return $response;
 

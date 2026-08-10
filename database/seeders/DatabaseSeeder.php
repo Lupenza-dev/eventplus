@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
         //     'password' => bcrypt('Admin@123'),
         // ]);
 
-        $this->call([RoleSeeder::class, PermissionSeeder::class]);
+        $this->call([RoleSeeder::class, 
+        PermissionSeeder::class,
+        ThreadTypeSeeder::class
+    ]);
     }
 }
