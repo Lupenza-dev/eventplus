@@ -477,7 +477,15 @@ function buildColumns(categories: Category[]): DataTableColumnDef<EventItem>[] {
                                     />
                                 </span>
                             )}
-                            <div className="font-medium">{event.title}</div>
+                            <div className="font-medium">
+                                <Link
+                                    href={ticketsIndex(event.id)}
+                                    prefetch
+                                    className="transition-colors hover:text-primary"
+                                >
+                                    {event.title}
+                                </Link>
+                            </div>
                         </div>
                         {event.is_paid_event && (
                             <span className="text-xs text-muted-foreground">

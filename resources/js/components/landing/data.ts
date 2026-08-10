@@ -44,64 +44,14 @@ export const steps: Step[] = [
 ];
 
 export interface EventItem {
+    id: number;
     name: string;
-    date: string;
-    location: string;
+    date: string | null;
+    location: string | null;
     price: string;
-    category: string;
-    image: string;
+    category: string | null;
+    image: string | null;
 }
-
-export const events: EventItem[] = [
-    {
-        name: 'Sauti za Busara Festival',
-        date: 'Fri, Feb 13 · 6:00 PM',
-        location: 'Stone Town, Zanzibar',
-        price: 'TZS 45',
-        category: 'Music',
-        image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=70',
-    },
-    {
-        name: 'TechCrunch Startup Summit',
-        date: 'Sat, Mar 7 · 9:00 AM',
-        location: 'Dar es Salaam',
-        price: 'TZS 120',
-        category: 'Conference',
-        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=70',
-    },
-    {
-        name: 'Serengeti Marathon',
-        date: 'Sun, Apr 12 · 5:30 AM',
-        location: 'Arusha',
-        price: 'TZS 30',
-        category: 'Sports',
-        image: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?auto=format&fit=crop&w=800&q=70',
-    },
-    {
-        name: 'Taste of the City Food Fest',
-        date: 'Sat, Mar 21 · 12:00 PM',
-        location: 'Mwanza',
-        price: 'TZS 15',
-        category: 'Food & Drink',
-        image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=70',
-    },
-    {
-        name: 'Contemporary Art Biennale',
-        date: 'Thu, May 1 · 10:00 AM',
-        location: 'Dodoma',
-        price: 'TZS 20',
-        category: 'Arts',
-        image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=800&q=70',
-    },
-    {
-        name: 'Comedy Night Live',
-        date: 'Fri, Mar 27 · 8:00 PM',
-        location: 'Dar es Salaam',
-        price: 'TZS 25',
-        category: 'Comedy',
-        image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=800&q=70',
-    },
-];
 
 export interface Feature {
     icon: LucideIcon;

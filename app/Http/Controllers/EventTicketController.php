@@ -18,8 +18,21 @@ class EventTicketController extends Controller
     {
         $this->authorizeOwner($request, $event);
 
+        $event->load('category:id,name');
+
         return Inertia::render('events/tickets', [
-            'event' => $event->only(['id', 'title', 'event_date', 'start_date']),
+            'event' => [
+                'id' => $event->id,
+                'title' => $event->title,
+                'description' => $event->description,
+                'location' => $event->location,
+                'event_date' => $event->event_date,
+                'start_date' => $event->start_date,
+                'end_date' => $event->end_date,
+                'is_paid_event' => $event->is_paid_event,
+                'image_url' => $event->image_url,
+                'category' => $event->category?->name,
+            ],
             'tickets' => $event->tickets()
                 ->latest()
                 ->get(['id', 'name', 'price', 'quantity', 'description', 'created_at']),

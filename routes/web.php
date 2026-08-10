@@ -4,11 +4,14 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventCategoryController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTicketController;
+use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\TicketSoldController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', [WelcomeController::class, 'index'])->name('home');
+Route::get('events/{event}', [PublicEventController::class, 'show'])->name('events.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])

@@ -8,8 +8,9 @@ import Navbar from '@/components/landing/navbar';
 import Testimonials from '@/components/landing/testimonials';
 import TopBar from '@/components/landing/top-bar';
 import WhyChoose from '@/components/landing/why-choose';
+import type { EventItem } from '@/components/landing/data';
 
-export default function Welcome() {
+export default function Welcome({ events }: { events: EventItem[] }) {
     return (
         <MotionConfig reducedMotion="user">
             <Head title="EventPlus — Discover Events and Buy Tickets Through WhatsApp">
@@ -24,7 +25,7 @@ export default function Welcome() {
                 <main>
                     <Hero />
                     <HowItWorks />
-                    <EventsSection />
+                    <EventsSection events={events} />
                     <WhyChoose />
                     <Testimonials />
                 </main>

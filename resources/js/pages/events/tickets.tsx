@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { Pencil, Plus, Ticket, Trash2 } from 'lucide-react';
+import { CalendarDays, MapPin, Pencil, Plus, Ticket, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -22,8 +22,14 @@ import { destroy, store, update } from '@/routes/events/tickets';
 type EventInfo = {
     id: number;
     title: string;
+    description: string | null;
+    location: string | null;
     event_date: string | null;
     start_date: string | null;
+    end_date: string | null;
+    is_paid_event: boolean;
+    image_url: string | null;
+    category: string | null;
 };
 
 type TicketItem = {
@@ -46,6 +52,64 @@ function formatPrice(price: string): string {
         currency: 'TZS',
         maximumFractionDigits: 0,
     }).format(Number(price));
+}
+
+function formatEventDate(value: string): string {
+    return new Date(value).toLocaleString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+}
+
+function EventDetailsHeader({ event }: { event: EventInfo }) {
+    return (
+        <div className="overflow-hidden rounded-xl border bg-card">
+            <div className="flex flex-col sm:flex-row">
+                {event.image_url ? (
+                    <img
+                        src={event.image_url}
+                        alt={event.title}
+                        className="h-44 w-full object-cover sm:h-auto sm:w-52 sm:shrink-0"
+                    />
+                ) : (
+                    <div className="flex h-44 w-full items-center justify-center bg-linear-to-br from-[#6C5CE7] to-[#8E7CF8] sm:h-auto sm:w-52 sm:shrink-0">
+                        <Ticket className="h-12 w-12 text-white/80" aria-hidden="true" />
+                    </div>
+                )}
+                <div className="flex flex-1 flex-col gap-3 p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {event.category && (
+                            <Badge variant="secondary">{event.category}</Badge>
+                        )}
+                        <Badge variant={event.is_paid_event ? 'default' : 'outline'}>
+                            {event.is_paid_event ? 'Paid event' : 'Free event'}
+                        </Badge>
+                    </div>
+                    <h2 className="text-lg font-semibold tracking-tight">{event.title}</h2>
+                    {event.description && (
+                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                        {event.event_date && (
+                            <span className="flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                                {formatEventDate(event.event_date)}
+                            </span>
+                        )}
+                        {event.location && (
+                            <span className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" aria-hidden="true" />
+                                {event.location}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 function TicketFormFields({
@@ -292,10 +356,12 @@ export default function EventTickets({ event, tickets }: Props) {
         <>
             <Head title={`Tickets — ${event.title}`} />
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+                <EventDetailsHeader event={event} />
+
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight">
-                            Tickets — {event.title}
+                            Available tickets
                         </h1>
                         <p className="text-sm text-muted-foreground">
                             Manage ticket types and availability for this event.

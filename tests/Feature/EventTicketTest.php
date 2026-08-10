@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Event;
+use App\Models\EventCategory;
 use App\Models\EventTicket;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests cannot view event tickets', function () {
     $event = Event::factory()->create();
@@ -13,11 +15,32 @@ test('guests cannot view event tickets', function () {
 
 test('users can view tickets for their own event', function () {
     $user = User::factory()->create();
-    $event = Event::factory()->create(['user_id' => $user->id]);
-    EventTicket::factory()->count(2)->create(['event_id' => $event->id]);
+    $category = EventCategory::factory()->create();
+    $event = Event::factory()->create([
+        'user_id' => $user->id,
+        'event_category_id' => $category->id,
+        'title' => 'Tech Summit 2026',
+        'location' => 'Dar es Salaam',
+        'event_date' => now()->addWeek(),
+    ]);
+    EventTicket::factory()->create([
+        'event_id' => $event->id,
+        'name' => 'VIP',
+        'price' => '45000',
+        'quantity' => 50,
+    ]);
 
     $this->actingAs($user)->get(route('events.tickets.index', $event))
-        ->assertOk();
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('events/tickets')
+            ->where('event.id', $event->id)
+            ->where('event.title', 'Tech Summit 2026')
+            ->where('event.location', 'Dar es Salaam')
+            ->where('event.category', $category->name)
+            ->has('tickets', 1)
+            ->where('tickets.0.name', 'VIP')
+            ->where('tickets.0.price', '45000.00'));
 });
 
 test('users cannot view tickets for another user\'s event', function () {
