@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { CalendarDays, LayoutGrid, Settings2, Ticket, Users } from 'lucide-react';
+import { Bot, CalendarDays, LayoutGrid, Settings2, Ticket, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -11,7 +11,12 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { dashboard, systemSettings, ticketsSold } from '@/routes';
+import {
+    botSettings,
+    dashboard,
+    systemSettings,
+    ticketsSold,
+} from '@/routes';
 import { index as eventsIndex } from '@/routes/events';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -39,6 +44,11 @@ const adminNavItems: NavItem[] = [
         title: 'Users',
         href: usersIndex(),
         icon: Users,
+    },
+    {
+        title: 'Bot Settings',
+        href: botSettings(),
+        icon: Bot,
     },
     {
         title: 'System Settings',

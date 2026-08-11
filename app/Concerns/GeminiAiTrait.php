@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Http;
 
 trait GeminiAiTrait
 {
-    public function sendRequest(string $content){
+    public function sendRequest(string $content)
+    {
 
         $response = Http::withHeaders([
             'x-goog-api-key' => env('GEMINI_KEY'),
@@ -20,33 +21,34 @@ trait GeminiAiTrait
             'stream' => false,
             'tools' => $this->tools(),
         ]);
-        
+
         $data = $response->json();
-        
+
         return response()->json($data);
     }
 
-//     public function sendRequest(string $content)
-// {
-//     $response = Http::withHeaders([
-//         'x-goog-api-key' => env('GEMINI_KEY'),
-//         'Content-Type' => 'application/json',
-//     ])->post(
-//         'https://generativelanguage.googleapis.com/v1beta/interactions',
-//         [
-//             'model' => 'gemini-3.5-flash',
-//             'input' => $content,
-//             'stream' => false,
-//             'tools' => $this->tools(),
-//         ]
-//     );
+    //     public function sendRequest(string $content)
+    // {
+    //     $response = Http::withHeaders([
+    //         'x-goog-api-key' => env('GEMINI_KEY'),
+    //         'Content-Type' => 'application/json',
+    //     ])->post(
+    //         'https://generativelanguage.googleapis.com/v1beta/interactions',
+    //         [
+    //             'model' => 'gemini-3.5-flash',
+    //             'input' => $content,
+    //             'stream' => false,
+    //             'tools' => $this->tools(),
+    //         ]
+    //     );
 
-//     $data = $response->json();
+    //     $data = $response->json();
 
-//     return response()->json($data);
-// }
+    //     return response()->json($data);
+    // }
 
-    public function eventCategory(){
+    public function eventCategory()
+    {
         return EventCategory::query()
             ->where('is_active', true)
             ->get(['id', 'name'])
@@ -56,7 +58,8 @@ trait GeminiAiTrait
             ]);
     }
 
-    public function eventList($categoryId = null){  
+    public function eventList($categoryId = null)
+    {
         return Event::query()
             ->where('is_active', true)
             ->where('is_approved', 1)
@@ -81,7 +84,8 @@ trait GeminiAiTrait
             ]);
     }
 
-    public function eventTickets($eventId = null){
+    public function eventTickets($eventId = null)
+    {
         $event = Event::query()
             ->where('id', $eventId)
             ->with(['tickets'])
@@ -95,7 +99,8 @@ trait GeminiAiTrait
         ]);
     }
 
-    public function paymentMethod(){
+    public function paymentMethod()
+    {
         return PaymentPartner::query()
             ->where('is_active', true)
             ->get(['id', 'name', 'image'])
@@ -118,7 +123,7 @@ trait GeminiAiTrait
                     'properties' => (object) [],
                 ],
             ],
-    
+
             [
                 'type' => 'function',
                 'name' => 'event_list',
@@ -133,7 +138,7 @@ trait GeminiAiTrait
                     ],
                 ],
             ],
-    
+
             [
                 'type' => 'function',
                 'name' => 'event_tickets',
@@ -149,7 +154,7 @@ trait GeminiAiTrait
                     'required' => ['event_id'],
                 ],
             ],
-    
+
             [
                 'type' => 'function',
                 'name' => 'payment_method',
@@ -162,28 +167,25 @@ trait GeminiAiTrait
         ];
     }
 
-private function executeTool(string $name, array $arguments = [])
-{
-    return match ($name) {
+    private function executeTool(string $name, array $arguments = [])
+    {
+        return match ($name) {
 
-        'event_category' => $this->eventCategory(),
+            'event_category' => $this->eventCategory(),
 
-        'event_list' => $this->eventList(
-            $arguments['category_id'] ?? null
-        ),
+            'event_list' => $this->eventList(
+                $arguments['category_id'] ?? null
+            ),
 
-        'event_tickets' => $this->eventTickets(
-            $arguments['event_id'] ?? null
-        ),
+            'event_tickets' => $this->eventTickets(
+                $arguments['event_id'] ?? null
+            ),
 
-        'payment_method' => $this->paymentMethod(),
+            'payment_method' => $this->paymentMethod(),
 
-        default => [
-            'error' => "Unknown tool: {$name}",
-        ],
-    };
-}
-
-
-   
+            default => [
+                'error' => "Unknown tool: {$name}",
+            ],
+        };
+    }
 }

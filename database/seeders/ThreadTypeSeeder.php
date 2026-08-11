@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ThreadType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ThreadTypeSeeder extends Seeder
@@ -20,6 +19,7 @@ class ThreadTypeSeeder extends Seeder
             'document',
             'image',
             'interactive',
+            'list',
             'location',
             'reaction',
             'sticker',

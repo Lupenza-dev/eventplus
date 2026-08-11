@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('step');
             $table->string('flag')->nullable();
             $table->string('thread_type');
-            $table->string('back_status')->nullable();
+            $table->boolean('back_status')->default(false);
             $table->boolean('close_thread')->default(false);
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->uuid();

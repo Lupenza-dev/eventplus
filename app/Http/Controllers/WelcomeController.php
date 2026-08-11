@@ -13,9 +13,9 @@ class WelcomeController extends Controller
         $events = Event::query()
             ->where('is_active', true)
             ->where('is_approved', 1)
-            // ->where(fn ($query) => $query
-            //     ->whereNull('event_date')
-            //     ->orWhere('event_date', '>=', now()))
+            ->where(fn ($query) => $query
+                ->whereNull('event_date')
+                ->orWhere('event_date', '>=', now()))
             ->with(['category:id,name', 'tickets'])
             ->latest()
             ->limit(6)
