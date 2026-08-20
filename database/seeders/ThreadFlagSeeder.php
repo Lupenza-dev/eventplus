@@ -13,11 +13,11 @@ class ThreadFlagSeeder extends Seeder
     public function run(): void
     {
         $flags = [
-            'menu',
-            'input',
-            'confirm',
-            'back',
-            'end',
+            'no flag',
+            'eventCategories',
+            'eventByCategory',
+            'paymentMethods',
+            'ticketGeneration',
         ];
 
         foreach ($flags as $flag) {

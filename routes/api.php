@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\WhatsappController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,3 +10,5 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('auth:sanctum');
 
 Route::get('/generate-token', [PaymentController::class, 'generateToken']);
+Route::get('web-callback',[WhatsappController::class,'verifyWebhook']);
+Route::post('web-callback',[WhatsappController::class,'processMessage']);
