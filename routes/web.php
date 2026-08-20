@@ -29,7 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->only(['index', 'store', 'update', 'destroy']);
 
     Route::resource('events.tickets', EventTicketController::class)
-        ->only(['index', 'store', 'update', 'destroy'])
+        ->only(['index', 'create', 'store', 'update', 'destroy'])
         ->parameters(['tickets' => 'ticket']);
 
     Route::get('tickets-sold', [TicketSoldController::class, 'index'])

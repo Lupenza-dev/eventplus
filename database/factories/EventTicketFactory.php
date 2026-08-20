@@ -25,6 +25,11 @@ class EventTicketFactory extends Factory
             'price' => fake()->randomFloat(2, 0, 500),
             'quantity' => fake()->numberBetween(10, 500),
             'description' => fake()->optional()->sentence(),
+            'design_image' => null,
+            'qr_code_x' => 62,
+            'qr_code_y' => 58,
+            'qr_code_width' => 24,
+            'qr_code_height' => 24,
             'uuid' => (string) Str::uuid(),
         ];
     }

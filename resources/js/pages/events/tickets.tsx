@@ -1,5 +1,13 @@
-import { Form, Head } from '@inertiajs/react';
-import { CalendarDays, MapPin, Pencil, Plus, Ticket, Trash2 } from 'lucide-react';
+import { Form, Head, Link } from '@inertiajs/react';
+import {
+    CalendarDays,
+    Image,
+    MapPin,
+    Pencil,
+    Plus,
+    Ticket,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { index as eventsIndex } from '@/routes/events';
-import { destroy, store, update } from '@/routes/events/tickets';
+import { create, destroy, update } from '@/routes/events/tickets';
 
 type EventInfo = {
     id: number;
@@ -38,6 +46,11 @@ type TicketItem = {
     price: string;
     quantity: number;
     description: string | null;
+    design_image_url: string | null;
+    qr_code_x: string;
+    qr_code_y: string;
+    qr_code_width: string;
+    qr_code_height: string;
     created_at: string;
 };
 
@@ -76,7 +89,10 @@ function EventDetailsHeader({ event }: { event: EventInfo }) {
                     />
                 ) : (
                     <div className="flex h-44 w-full items-center justify-center bg-linear-to-br from-[#6C5CE7] to-[#8E7CF8] sm:h-auto sm:w-52 sm:shrink-0">
-                        <Ticket className="h-12 w-12 text-white/80" aria-hidden="true" />
+                        <Ticket
+                            className="h-12 w-12 text-white/80"
+                            aria-hidden="true"
+                        />
                     </div>
                 )}
                 <div className="flex flex-1 flex-col gap-3 p-5">
@@ -84,24 +100,38 @@ function EventDetailsHeader({ event }: { event: EventInfo }) {
                         {event.category && (
                             <Badge variant="secondary">{event.category}</Badge>
                         )}
-                        <Badge variant={event.is_paid_event ? 'default' : 'outline'}>
+                        <Badge
+                            variant={
+                                event.is_paid_event ? 'default' : 'outline'
+                            }
+                        >
                             {event.is_paid_event ? 'Paid event' : 'Free event'}
                         </Badge>
                     </div>
-                    <h2 className="text-lg font-semibold tracking-tight">{event.title}</h2>
+                    <h2 className="text-lg font-semibold tracking-tight">
+                        {event.title}
+                    </h2>
                     {event.description && (
-                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {event.description}
+                        </p>
                     )}
                     <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
                         {event.event_date && (
                             <span className="flex items-center gap-2">
-                                <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                                <CalendarDays
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                />
                                 {formatEventDate(event.event_date)}
                             </span>
                         )}
                         {event.location && (
                             <span className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" aria-hidden="true" />
+                                <MapPin
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                />
                                 {event.location}
                             </span>
                         )}
@@ -121,8 +151,34 @@ function TicketFormFields({
 }) {
     return (
         <>
+            {ticket && (
+                <>
+                    <input
+                        type="hidden"
+                        name="qr_code_x"
+                        value={ticket.qr_code_x}
+                    />
+                    <input
+                        type="hidden"
+                        name="qr_code_y"
+                        value={ticket.qr_code_y}
+                    />
+                    <input
+                        type="hidden"
+                        name="qr_code_width"
+                        value={ticket.qr_code_width}
+                    />
+                    <input
+                        type="hidden"
+                        name="qr_code_height"
+                        value={ticket.qr_code_height}
+                    />
+                </>
+            )}
             <div className="grid gap-2">
-                <Label htmlFor={ticket ? `edit-name-${ticket.id}` : 'create-name'}>
+                <Label
+                    htmlFor={ticket ? `edit-name-${ticket.id}` : 'create-name'}
+                >
                     Ticket name
                 </Label>
                 <Input
@@ -138,7 +194,11 @@ function TicketFormFields({
 
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                    <Label htmlFor={ticket ? `edit-price-${ticket.id}` : 'create-price'}>
+                    <Label
+                        htmlFor={
+                            ticket ? `edit-price-${ticket.id}` : 'create-price'
+                        }
+                    >
                         Price (TZS)
                     </Label>
                     <Input
@@ -155,12 +215,20 @@ function TicketFormFields({
                 </div>
                 <div className="grid gap-2">
                     <Label
-                        htmlFor={ticket ? `edit-quantity-${ticket.id}` : 'create-quantity'}
+                        htmlFor={
+                            ticket
+                                ? `edit-quantity-${ticket.id}`
+                                : 'create-quantity'
+                        }
                     >
                         Quantity
                     </Label>
                     <Input
-                        id={ticket ? `edit-quantity-${ticket.id}` : 'create-quantity'}
+                        id={
+                            ticket
+                                ? `edit-quantity-${ticket.id}`
+                                : 'create-quantity'
+                        }
                         name="quantity"
                         type="number"
                         min="0"
@@ -173,7 +241,9 @@ function TicketFormFields({
             </div>
 
             <div className="grid gap-2">
-                <Label htmlFor={ticket ? `edit-desc-${ticket.id}` : 'create-desc'}>
+                <Label
+                    htmlFor={ticket ? `edit-desc-${ticket.id}` : 'create-desc'}
+                >
                     Description
                 </Label>
                 <textarea
@@ -182,59 +252,11 @@ function TicketFormFields({
                     rows={3}
                     defaultValue={ticket?.description ?? ''}
                     placeholder="What does this ticket include?"
-                    className="border-input bg-transparent placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive flex min-h-16 w-full rounded-md border px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    className="flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm"
                 />
                 <InputError message={errors.description} />
             </div>
         </>
-    );
-}
-
-function CreateTicketDialog({ event }: { event: EventInfo }) {
-    const [open, setOpen] = useState(false);
-
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button data-test="create-ticket-button">
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    New ticket
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>New ticket</DialogTitle>
-                    <DialogDescription>
-                        Add a ticket type for {event.title}.
-                    </DialogDescription>
-                </DialogHeader>
-                <Form
-                    {...store.form(event.id)}
-                    resetOnSuccess
-                    onSuccess={() => setOpen(false)}
-                    className="flex flex-col gap-4"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <TicketFormFields errors={errors} />
-                            <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={processing}>
-                                    {processing && <Spinner />}
-                                    Create
-                                </Button>
-                            </DialogFooter>
-                        </>
-                    )}
-                </Form>
-            </DialogContent>
-        </Dialog>
     );
 }
 
@@ -250,7 +272,11 @@ function EditTicketDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={`Edit ${ticket.name}`}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Edit ${ticket.name}`}
+                >
                     <Pencil className="h-4 w-4" aria-hidden="true" />
                 </Button>
             </DialogTrigger>
@@ -367,18 +393,26 @@ export default function EventTickets({ event, tickets }: Props) {
                             Manage ticket types and availability for this event.
                         </p>
                     </div>
-                    <CreateTicketDialog event={event} />
+                    <Button data-test="create-ticket-button" asChild>
+                        <Link href={create(event.id)}>
+                            <Plus className="h-4 w-4" aria-hidden="true" />
+                            New ticket
+                        </Link>
+                    </Button>
                 </div>
 
                 {tickets.length === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-12 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            <Ticket className="h-6 w-6 text-primary" aria-hidden="true" />
+                            <Ticket
+                                className="h-6 w-6 text-primary"
+                                aria-hidden="true"
+                            />
                         </span>
                         <p className="font-medium">No tickets yet</p>
                         <p className="max-w-sm text-sm text-muted-foreground">
-                            Create your first ticket type for this event and it will
-                            appear here.
+                            Create your first ticket type for this event and it
+                            will appear here.
                         </p>
                     </div>
                 ) : (
@@ -386,13 +420,20 @@ export default function EventTickets({ event, tickets }: Props) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50 text-left">
-                                    <th className="px-4 py-3 font-medium">Name</th>
-                                    <th className="px-4 py-3 font-medium">Price</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Name
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Price
+                                    </th>
                                     <th className="hidden px-4 py-3 font-medium sm:table-cell">
                                         Quantity
                                     </th>
                                     <th className="hidden px-4 py-3 font-medium md:table-cell">
                                         Description
+                                    </th>
+                                    <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                                        Design
                                     </th>
                                     <th className="w-24 px-4 py-3 text-right font-medium">
                                         Actions
@@ -418,6 +459,29 @@ export default function EventTickets({ event, tickets }: Props) {
                                         </td>
                                         <td className="hidden max-w-48 truncate px-4 py-3 text-muted-foreground md:table-cell">
                                             {ticket.description ?? '—'}
+                                        </td>
+                                        <td className="hidden px-4 py-3 lg:table-cell">
+                                            {ticket.design_image_url ? (
+                                                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                                                    <Image
+                                                        className="h-4 w-4"
+                                                        aria-hidden="true"
+                                                    />
+                                                    QR at{' '}
+                                                    {Number(
+                                                        ticket.qr_code_x,
+                                                    ).toFixed(0)}
+                                                    %,{' '}
+                                                    {Number(
+                                                        ticket.qr_code_y,
+                                                    ).toFixed(0)}
+                                                    %
+                                                </span>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-1">
