@@ -34,6 +34,7 @@ type Thread = {
     id: number;
     title_eng: string;
     title_sw: string;
+    step:string
 };
 
 type Link = {

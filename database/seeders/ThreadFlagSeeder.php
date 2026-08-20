@@ -16,7 +16,9 @@ class ThreadFlagSeeder extends Seeder
             'no flag',
             'eventCategories',
             'eventByCategory',
+            'eventTickets',
             'paymentMethods',
+            'orderSummary',
             'ticketGeneration',
         ];
 

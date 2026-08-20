@@ -25,6 +25,7 @@ class ThreadTypeSeeder extends Seeder
             'sticker',
             'text',
             'video',
+            'carousel'
         ];
 
         foreach ($types as $type) {
