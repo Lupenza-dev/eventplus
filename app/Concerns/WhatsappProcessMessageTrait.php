@@ -14,7 +14,7 @@ trait WhatsappProcessMessageTrait
 {
     use sendWhatsappMessageTrait;
 
-    public function analyseMessage(int $phone_number, string $message_id, string $type, string $body, int $reply_id)
+    public function analyseMessage(int $phone_number, string $message_id, string $type, string $body,  $reply_id = null)
     {
 
         $message_exist = BotLog::where('message_id', $message_id)->first();
@@ -35,8 +35,8 @@ trait WhatsappProcessMessageTrait
             $this->createUserLog($phone_number, 'thread_initiated', $body, $thread->close_thread);
 
             $header_text   =$thread->title_eng;
-            $button_label  ="Choose Event Category";
-            $responses =EventCategory::get(['id','name']);
+            $button_label  ="Event Categories";
+            $responses =EventCategory::get(['id','name'])->toArray();;
 
             $this->createBotLog($phone_number,$message_id,$body,$reply_id,$thread->step,$thread->id,$type,$thread->close_thread);
                 $this->interactiveSms($phone_number,$header_text,$button_label,$responses);
@@ -47,7 +47,7 @@ trait WhatsappProcessMessageTrait
 
     }
 
-    public function createBotLog(int $phone_number,string $message_id,string $body,int $reply_id,int $step,int $thread_id,string $type,string $thread_status){
+    public function createBotLog(int $phone_number,string $message_id,string $body,?int $reply_id,int $step,int $thread_id,string $type,string $thread_status){
         BotLog::create([
             'phone_number' =>$phone_number,
             'message_id'   =>$message_id,

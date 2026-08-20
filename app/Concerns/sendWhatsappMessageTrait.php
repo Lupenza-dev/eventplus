@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\Log;
 trait sendWhatsappMessageTrait
 {
     public function interactiveSms(int $phone_number, string $header_text, string $button_label, array $responses) {
+
         $rows = [];
         foreach ($responses as $key) {
             $rows[] = [
-                'id' => $key->id,
-                'title' => $key->name_eng,
+                'id' => $key['id'],
+                'title' => $key['name'],
             ];
         }
 

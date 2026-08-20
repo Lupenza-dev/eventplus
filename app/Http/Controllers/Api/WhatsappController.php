@@ -13,12 +13,14 @@ class WhatsappController extends Controller
 
     public function verifyWebhook(Request $request)
     {
+        Log::info('verification');
+        Log::debug($request->all());
         $mode = $request->query('hub_mode');
         $token = $request->query('hub_verify_token');
         $challenge = $request->query('hub_challenge');
 
         if ($mode && $token) {
-            if ($mode === 'subscribe' && $token === env('WHATSAPP_VERIFY_TOKEN')) {
+            if ($mode === 'subscribe' && $token === "ChatBot@2027") {
                 return response($challenge, 200);
             } else {
                 return response('Forbidden', 403);
@@ -30,6 +32,8 @@ class WhatsappController extends Controller
 
     public function processMessage(Request $request)
     {
+        Log::info('process');
+        Log::debug($request->all());
         $response = json_decode(file_get_contents('php://input'), true);
         Log::debug($response);
 
