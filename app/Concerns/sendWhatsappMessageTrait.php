@@ -75,6 +75,55 @@ trait sendWhatsappMessageTrait
        // return $response;
     }
 
+    public function carouselSms(string $phone_number,array $data){
+        $cards = [];
+
+        foreach ($data as $index => $event) {
+            $cards[] = [
+                'card_index' => $index,
+                'type' => 'cta_url',
+                'header' => [
+                    'type' => 'image',
+                    'image' => [
+                        'link' => $event['image_url'],
+                    ],
+                ],
+                'body' => [
+                    'text' => $event['header'] . "\n" . $event['event_date'] . "\n" . $event['location'],
+                ],
+                'action' => [
+                    'buttons' => [
+                        [
+                            'type' => 'quick_reply',
+                            'quick_reply' => [
+                                'id' => 'event_' . $event['id'],
+                                'title' => 'View Details',
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $phone_number,
+            'type' => 'interactive',
+            'interactive' => [
+                'type' => 'carousel',
+                'body' => [
+                    'text' => "Check out our upcoming events!",
+                ],
+                'action' => [
+                    'cards' => $cards,
+                ],
+            ],
+        ];
+
+        $response =$this->sendSms($payload);
+    }
+
     public function sendSms($data){
         Log::debug('----------------------- send api request-------------------');
         $base_url =env('META_BASE_URL');

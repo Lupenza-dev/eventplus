@@ -34,7 +34,7 @@ type Thread = {
     id: number;
     title_eng: string;
     title_sw: string;
-    step:string
+    step: string;
 };
 
 type Link = {
@@ -118,7 +118,7 @@ export default function ThreadLinks({ links, threads }: Props) {
     };
 
     const remove = (link: Link) => {
-        if (window.confirm(`Delete the link from "${link.thread.title_eng}"?`)) {
+        if (window.confirm(`Delete the link from "${link.thread.step}"?`)) {
             router.delete(destroy.url(link.id), { preserveScroll: true });
         }
     };
@@ -195,7 +195,7 @@ export default function ThreadLinks({ links, threads }: Props) {
                                                     key={thread.id}
                                                     value={String(thread.id)}
                                                 >
-                                                    {thread.title_eng}
+                                                    {thread.step}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -226,7 +226,7 @@ export default function ThreadLinks({ links, threads }: Props) {
                                                     key={thread.id}
                                                     value={String(thread.id)}
                                                 >
-                                                    {thread.title_eng}
+                                                    {thread.step}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -266,9 +266,9 @@ export default function ThreadLinks({ links, threads }: Props) {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b bg-muted/50 text-left">
-                                        <th className="px-4 py-3 font-medium">Thread</th>
+                                        <th className="px-4 py-3 font-medium">Thread Step</th>
                                         <th className="hidden px-4 py-3 font-medium sm:table-cell">
-                                            Swahili
+                                            Title
                                         </th>
                                         <th className="px-4 py-3 font-medium">
                                             Linked thread
@@ -290,14 +290,14 @@ export default function ThreadLinks({ links, threads }: Props) {
                                             }`}
                                         >
                                             <td className="px-4 py-3 font-medium">
-                                                {link.thread.title_eng}
+                                                {link.thread.step}
                                             </td>
                                             <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
-                                                {link.thread.title_sw}
+                                                {link.thread.title_eng}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <Badge variant="secondary">
-                                                    {link.linked_thread.title_eng}
+                                                    {link.linked_thread.step}
                                                 </Badge>
                                             </td>
                                             <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
@@ -314,7 +314,7 @@ export default function ThreadLinks({ links, threads }: Props) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        aria-label={`Edit link for ${link.thread.title_eng}`}
+                                                        aria-label={`Edit link for ${link.thread.step}`}
                                                         onClick={() => startEdit(link)}
                                                     >
                                                         <Pencil className="h-4 w-4" aria-hidden="true" />
@@ -322,7 +322,7 @@ export default function ThreadLinks({ links, threads }: Props) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        aria-label={`Delete link for ${link.thread.title_eng}`}
+                                                        aria-label={`Delete link for ${link.thread.step}`}
                                                         className="text-destructive hover:text-destructive"
                                                         onClick={() => remove(link)}
                                                     >

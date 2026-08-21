@@ -21,7 +21,7 @@ class ThreadController extends Controller
         return Inertia::render('bot-settings/thread-menus', [
             'threads' => Thread::query()
                 ->with('user:id,name')
-                ->latest()
+                //->latest()
                 ->get(['id', 'title_eng', 'title_sw', 'step', 'flag', 'thread_type', 'back_status', 'close_thread', 'user_id', 'created_at']),
             'flags' => ThreadFlag::query()
                 ->where('is_active', true)

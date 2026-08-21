@@ -24,7 +24,7 @@ class ThreadLinkController extends Controller
                 ->get(['id', 'thread_id', 'linked_thread_id', 'created_at']),
             'threads' => Thread::query()
                 ->whereDoesntHave('threadLinks')
-                ->latest()
+                // ->latest()
                 ->get(['id', 'title_eng', 'title_sw','step']),
         ]);
     }
