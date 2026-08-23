@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
 import type { DataTableColumnDef } from '@/components/data-table';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -16,6 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { dashboard } from '@/routes';
 import { destroy, edit, index as usersIndex, store } from '@/routes/users';
@@ -25,11 +33,13 @@ type UserItem = {
     name: string;
     email: string;
     phone: string | null;
+    roles: string[];
     created_at: string;
 };
 
 type Props = {
     users: UserItem[];
+    roles: string[];
 };
 
 function formatDate(value: string): string {
@@ -40,8 +50,14 @@ function formatDate(value: string): string {
     });
 }
 
-function CreateUserDialog() {
+function CreateUserDialog({ roles }: { roles: string[] }) {
     const [open, setOpen] = useState(false);
+    const [role, setRole] = useState('');
+
+    const handleSuccess = (): void => {
+        setRole('');
+        setOpen(false);
+    };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -55,14 +71,13 @@ function CreateUserDialog() {
                 <DialogHeader>
                     <DialogTitle>New user</DialogTitle>
                     <DialogDescription>
-                        Create a user account. Permissions can be assigned after
-                        creation.
+                        Create a user account and choose their access role.
                     </DialogDescription>
                 </DialogHeader>
                 <Form
                     {...store.form()}
                     resetOnSuccess
-                    onSuccess={() => setOpen(false)}
+                    onSuccess={handleSuccess}
                     className="flex flex-col gap-4"
                 >
                     {({ processing, errors }) => (
@@ -99,9 +114,35 @@ function CreateUserDialog() {
                                 />
                                 <InputError message={errors.phone} />
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="create-role">Role</Label>
+                                <input type="hidden" name="role" value={role} />
+                                <Select value={role} onValueChange={setRole}>
+                                    <SelectTrigger
+                                        id="create-role"
+                                        className="w-full"
+                                        aria-invalid={Boolean(errors.role)}
+                                    >
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roles.map((availableRole) => (
+                                            <SelectItem
+                                                key={availableRole}
+                                                value={availableRole}
+                                            >
+                                                {availableRole}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.role} />
+                            </div>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="create-password">Password</Label>
+                                    <Label htmlFor="create-password">
+                                        Password
+                                    </Label>
                                     <Input
                                         id="create-password"
                                         name="password"
@@ -171,7 +212,10 @@ function DeleteUserDialog({ user }: { user: UserItem }) {
                         ? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...destroy.form(user.id)} onSuccess={() => setOpen(false)}>
+                <Form
+                    {...destroy.form(user.id)}
+                    onSuccess={() => setOpen(false)}
+                >
                     {({ processing }) => (
                         <DialogFooter>
                             <Button
@@ -202,7 +246,9 @@ const columns: DataTableColumnDef<UserItem>[] = [
         id: 'name',
         header: 'Name',
         accessorKey: 'name',
-        cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+        cell: ({ row }) => (
+            <div className="font-medium">{row.original.name}</div>
+        ),
     },
     {
         id: 'email',
@@ -221,6 +267,27 @@ const columns: DataTableColumnDef<UserItem>[] = [
                 {row.original.phone ?? '—'}
             </span>
         ),
+    },
+    {
+        id: 'roles',
+        header: 'Role',
+        accessorFn: (user) => user.roles.join(' '),
+        cell: ({ row }) =>
+            row.original.roles.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                    {row.original.roles.map((role) => (
+                        <Badge
+                            key={role}
+                            variant="secondary"
+                            className="border border-primary/15 bg-primary/8 text-primary"
+                        >
+                            {role}
+                        </Badge>
+                    ))}
+                </div>
+            ) : (
+                <span className="text-sm text-muted-foreground">No role</span>
+            ),
     },
     {
         id: 'created_at',
@@ -259,25 +326,30 @@ const columns: DataTableColumnDef<UserItem>[] = [
     },
 ];
 
-export default function UsersIndex({ users }: Props) {
+export default function UsersIndex({ users, roles }: Props) {
     return (
         <>
             <Head title="Users" />
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl font-semibold tracking-tight">Users</h1>
+                        <h1 className="text-xl font-semibold tracking-tight">
+                            Users
+                        </h1>
                         <p className="text-sm text-muted-foreground">
                             Create and manage user accounts and permissions.
                         </p>
                     </div>
-                    <CreateUserDialog />
+                    <CreateUserDialog roles={roles} />
                 </div>
 
                 {users.length === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-12 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            <Users className="h-6 w-6 text-primary" aria-hidden="true" />
+                            <Users
+                                className="h-6 w-6 text-primary"
+                                aria-hidden="true"
+                            />
                         </span>
                         <p className="font-medium">No users yet</p>
                         <p className="max-w-sm text-sm text-muted-foreground">

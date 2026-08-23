@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -20,8 +21,17 @@ class UserController extends Controller
     {
         return Inertia::render('users/index', [
             'users' => User::query()
+                ->with('roles:id,name')
                 ->orderBy('name')
-                ->get(['id', 'name', 'email', 'phone', 'created_at']),
+                ->get(['id', 'name', 'email', 'phone', 'created_at'])
+                ->map(fn (User $user): array => [
+                    ...$user->only(['id', 'name', 'email', 'phone', 'created_at']),
+                    'roles' => $user->roles->pluck('name')->values(),
+                ]),
+            'roles' => Role::query()
+                ->where('guard_name', 'web')
+                ->orderBy('name')
+                ->pluck('name'),
         ]);
     }
 
@@ -35,14 +45,21 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'role' => [
+                'required',
+                'string',
+                Rule::exists('roles', 'name')->where('guard_name', 'web'),
+            ],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'password' => $validated['password'],
         ]);
+
+        $user->assignRole($validated['role']);
 
         return back()->with('toast', ['type' => 'success', 'message' => 'User created.']);
     }
