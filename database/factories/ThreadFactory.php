@@ -24,6 +24,7 @@ class ThreadFactory extends Factory
             'step' => '1',
             'flag' => 'menu',
             'thread_type' => 'text',
+            'label' => 'welcome',
             'back_status' => false,
             'close_thread' => false,
             'user_id' => User::factory(),

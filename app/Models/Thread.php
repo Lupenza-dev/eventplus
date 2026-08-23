@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  * @property string $step
  * @property string|null $flag
  * @property string|null $thread_type
+ * @property string|null $label
  * @property bool $back_status
  * @property bool $close_thread
  * @property int $user_id
@@ -27,7 +28,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['title_eng', 'title_sw', 'step', 'flag', 'thread_type', 'back_status', 'close_thread', 'user_id', 'uuid'])]
+#[Fillable(['title_eng', 'title_sw', 'step', 'flag', 'thread_type', 'label', 'back_status', 'close_thread', 'user_id', 'uuid'])]
 class Thread extends Model
 {
     /** @use HasFactory<ThreadFactory> */

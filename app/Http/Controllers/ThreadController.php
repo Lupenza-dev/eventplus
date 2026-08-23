@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Thread;
 use App\Models\ThreadFlag;
+use App\Models\ThreadLabel;
 use App\Models\ThreadType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,16 @@ class ThreadController extends Controller
         return Inertia::render('bot-settings/thread-menus', [
             'threads' => Thread::query()
                 ->with('user:id,name')
-                //->latest()
-                ->get(['id', 'title_eng', 'title_sw', 'step', 'flag', 'thread_type', 'back_status', 'close_thread', 'user_id', 'created_at']),
+                ->get(['id', 'title_eng', 'title_sw', 'step', 'flag', 'thread_type', 'label', 'back_status', 'close_thread', 'user_id', 'created_at']),
             'flags' => ThreadFlag::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->pluck('name'),
             'threadTypes' => ThreadType::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->pluck('name'),
+            'labels' => ThreadLabel::query()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->pluck('name'),
@@ -69,7 +73,7 @@ class ThreadController extends Controller
     }
 
     /**
-     * @return array{title_eng: string, title_sw: string, step: string, flag: string, thread_type: string, back_status: bool, close_thread: bool}
+     * @return array{title_eng: string, title_sw: string, step: string, flag: string, thread_type: string, label: string, back_status: bool, close_thread: bool}
      */
     private function validateThread(Request $request): array
     {
@@ -79,6 +83,7 @@ class ThreadController extends Controller
             'step' => ['required', 'string', 'max:255'],
             'flag' => ['required', 'string', Rule::exists('thread_flags', 'name')->where('is_active', true)],
             'thread_type' => ['required', 'string', Rule::exists('thread_types', 'name')->where('is_active', true)],
+            'label' => ['required', 'string', Rule::exists('thread_labels', 'name')->where('is_active', true)],
             'back_status' => ['sometimes', 'boolean'],
             'close_thread' => ['sometimes', 'boolean'],
         ]);

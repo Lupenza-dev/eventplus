@@ -1,5 +1,11 @@
 import { Form, Head, Link, useForm } from '@inertiajs/react';
-import { MessageSquareReply, PanelTop, Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+    MessageSquareReply,
+    PanelTop,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +47,7 @@ type Thread = {
     step: string;
     flag: string;
     thread_type: string;
+    label: string;
     back_status: boolean;
     close_thread: boolean;
     user: { id: number; name: string } | null;
@@ -51,6 +58,7 @@ type Props = {
     threads: Thread[];
     flags: string[];
     threadTypes: string[];
+    labels: string[];
 };
 
 type FormValues = {
@@ -59,6 +67,7 @@ type FormValues = {
     step: string;
     flag: string;
     thread_type: string;
+    label: string;
     back_status: boolean;
     close_thread: boolean;
 };
@@ -72,6 +81,7 @@ function emptyValues(): FormValues {
         step: '',
         flag: '',
         thread_type: '',
+        label: '',
         back_status: false,
         close_thread: false,
     };
@@ -103,10 +113,12 @@ function ThreadFormFields({
     form,
     flags,
     threadTypes,
+    labels,
 }: {
     form: ThreadForm;
     flags: string[];
     threadTypes: string[];
+    labels: string[];
 }) {
     return (
         <>
@@ -185,6 +197,25 @@ function ThreadFormFields({
                     </Select>
                     <InputError message={form.errors.thread_type} />
                 </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="label">Label</Label>
+                    <Select
+                        value={form.data.label}
+                        onValueChange={(value) => form.setData('label', value)}
+                    >
+                        <SelectTrigger id="label">
+                            <SelectValue placeholder="Select a label" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ThreadSelectItems
+                                options={labels}
+                                emptyLabel="No labels available"
+                            />
+                        </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.label} />
+                </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -216,7 +247,15 @@ function ThreadFormFields({
     );
 }
 
-function CreateThreadDialog({ flags, threadTypes }: { flags: string[]; threadTypes: string[] }) {
+function CreateThreadDialog({
+    flags,
+    threadTypes,
+    labels,
+}: {
+    flags: string[];
+    threadTypes: string[];
+    labels: string[];
+}) {
     const [open, setOpen] = useState(false);
     const form = useForm<FormValues>(emptyValues());
 
@@ -251,7 +290,12 @@ function CreateThreadDialog({ flags, threadTypes }: { flags: string[]; threadTyp
                     className="flex flex-col gap-4"
                     noValidate
                 >
-                    <ThreadFormFields form={form} flags={flags} threadTypes={threadTypes} />
+                    <ThreadFormFields
+                        form={form}
+                        flags={flags}
+                        threadTypes={threadTypes}
+                        labels={labels}
+                    />
                     <DialogFooter>
                         <Button
                             type="button"
@@ -275,10 +319,12 @@ function EditThreadDialog({
     thread,
     flags,
     threadTypes,
+    labels,
 }: {
     thread: Thread;
     flags: string[];
     threadTypes: string[];
+    labels: string[];
 }) {
     const [open, setOpen] = useState(false);
     const form = useForm<FormValues>({
@@ -287,6 +333,7 @@ function EditThreadDialog({
         step: thread.step,
         flag: thread.flag,
         thread_type: thread.thread_type,
+        label: thread.label,
         back_status: thread.back_status,
         close_thread: thread.close_thread,
     });
@@ -322,7 +369,12 @@ function EditThreadDialog({
                     className="flex flex-col gap-4"
                     noValidate
                 >
-                    <ThreadFormFields form={form} flags={flags} threadTypes={threadTypes} />
+                    <ThreadFormFields
+                        form={form}
+                        flags={flags}
+                        threadTypes={threadTypes}
+                        labels={labels}
+                    />
                     <DialogFooter>
                         <Button
                             type="button"
@@ -397,7 +449,12 @@ function DeleteThreadDialog({ thread }: { thread: Thread }) {
     );
 }
 
-export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
+export default function ThreadMenus({
+    threads,
+    flags,
+    threadTypes,
+    labels,
+}: Props) {
     return (
         <>
             <Head title="Thread Menu" />
@@ -411,17 +468,25 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                             Menus the WhatsApp bot shows to users.
                         </p>
                     </div>
-                    <CreateThreadDialog flags={flags} threadTypes={threadTypes} />
+                    <CreateThreadDialog
+                        flags={flags}
+                        threadTypes={threadTypes}
+                        labels={labels}
+                    />
                 </div>
 
                 {threads.length === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-12 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            <PanelTop className="h-6 w-6 text-primary" aria-hidden="true" />
+                            <PanelTop
+                                className="h-6 w-6 text-primary"
+                                aria-hidden="true"
+                            />
                         </span>
                         <p className="font-medium">No thread menus yet</p>
                         <p className="max-w-sm text-sm text-muted-foreground">
-                            Create your first thread menu and it will appear here.
+                            Create your first thread menu and it will appear
+                            here.
                         </p>
                     </div>
                 ) : (
@@ -429,11 +494,15 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50 text-left">
-                                    <th className="px-4 py-3 font-medium">Title</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Title
+                                    </th>
                                     <th className="hidden px-4 py-3 font-medium md:table-cell">
                                         Swahili
                                     </th>
-                                    <th className="px-4 py-3 font-medium">Step</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Step
+                                    </th>
                                     <th className="hidden px-4 py-3 font-medium sm:table-cell">
                                         Flag
                                     </th>
@@ -466,7 +535,9 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                                             </Badge>
                                         </td>
                                         <td className="hidden px-4 py-3 sm:table-cell">
-                                            <Badge variant="outline">{thread.flag}</Badge>
+                                            <Badge variant="outline">
+                                                {thread.flag}
+                                            </Badge>
                                         </td>
                                         <td className="hidden px-4 py-3 sm:table-cell">
                                             {thread.thread_type}
@@ -484,7 +555,8 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-1">
-                                                {thread.thread_type === 'interactive' && (
+                                                {thread.thread_type ===
+                                                    'interactive' && (
                                                     <Button
                                                         asChild
                                                         variant="ghost"
@@ -493,9 +565,11 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                                                         title="Responses"
                                                     >
                                                         <Link
-                                                            href={threadResponsesIndex({
-                                                                thread: thread.id,
-                                                            })}
+                                                            href={threadResponsesIndex(
+                                                                {
+                                                                    thread: thread.id,
+                                                                },
+                                                            )}
                                                         >
                                                             <MessageSquareReply
                                                                 className="h-4 w-4 text-primary"
@@ -508,8 +582,11 @@ export default function ThreadMenus({ threads, flags, threadTypes }: Props) {
                                                     thread={thread}
                                                     flags={flags}
                                                     threadTypes={threadTypes}
+                                                    labels={labels}
                                                 />
-                                                <DeleteThreadDialog thread={thread} />
+                                                <DeleteThreadDialog
+                                                    thread={thread}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

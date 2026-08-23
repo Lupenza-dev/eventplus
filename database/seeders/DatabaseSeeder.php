@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             ThreadTypeSeeder::class,
             ThreadFlagSeeder::class,
+            ThreadLabelSeeder::class,
         ]);
     }
 }
