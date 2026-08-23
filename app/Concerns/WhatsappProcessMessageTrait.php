@@ -34,14 +34,31 @@ trait WhatsappProcessMessageTrait
                 //heck type of message
 
                $type_of_message = $next_thread->linkedThread?->thread_type;
-
+                    // Log::info('next thread');
+                    // Log::info($next_thread->linkedThread);
                if($type_of_message == "text"){
-               $builded_message = $this->botStepManagement($next_thread->linkedThread,$body);
-               $this->textSms($phone_number,$builded_message);
+
+               $builded_message = $this->botStepManagement($next_thread->linkedThread,$body,$reply_id);
+               Log::info('builded');
+               Log::info($builded_message);
+
+               $this->createUserLog($phone_number, 'thread_initiated', $body, $next_thread->linkedThread->close_thread);
+               $this->createBotLog($phone_number,$message_id,$body,$reply_id,$next_thread->linkedThread->step,$next_thread->linkedThread->id,$type,$next_thread->linkedThread->close_thread);
+
+               if($builded_message['type'] == 'text'){
+ 
+                $this->textSms($phone_number,$builded_message['data']);
+               }else if ($builded_message['type'] == 'interactive'){
+                    $this->interactiveSms($phone_number, $builded_message['header_text'],$builded_message['button_label'], $builded_message['data']);
+               }
+              
                }else if ($type_of_message == "carousel"){
                 $message_response = $this->botStepManagementForCarousel($next_thread->linkedThread,$body);
                 // if count = 2 means carousel
                 if ($message_response['count'] == 2) {
+                    $this->createUserLog($phone_number, 'thread_initiated', $body, $next_thread->linkedThread->close_thread);
+                    $this->createBotLog($phone_number,$message_id,$body,$reply_id,$next_thread->linkedThread->step,$next_thread->linkedThread->id,$type,$next_thread->linkedThread->close_thread);
+     
                     $this->carouselSms($phone_number,$message_response['message']);
                 } else {
                     # code...

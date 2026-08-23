@@ -52,13 +52,23 @@ class WhatsappController extends Controller
                 $message_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['id'];
                 $type = $response['entry'][0]['changes'][0]['value']['messages'][0]['type'];
                 $body = $response['entry'][0]['changes'][0]['value']['messages'][0]['image']['sha256'];
-            } elseif ($type == 'interactive') {
+            } 
+            elseif ($type == 'interactive') {
                 $phone_number = $response['entry'][0]['changes'][0]['value']['messages'][0]['from'];
                 $message_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['id'];
                 $type = $response['entry'][0]['changes'][0]['value']['messages'][0]['type'];
                 $body = $response['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['list_reply']['title'];
                 $reply_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['list_reply']['id'];
-            } else {
+            } 
+            elseif ($type == 'button') {
+                $phone_number = $response['entry'][0]['changes'][0]['value']['messages'][0]['from'];
+                $message_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['id'];
+                $type = $response['entry'][0]['changes'][0]['value']['messages'][0]['type'];
+                $body = $response['entry'][0]['changes'][0]['value']['messages'][0]['button']['text'];
+                $reply_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['button']['payload'];
+                // $reply_id = $response['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['list_reply']['id'];
+            } 
+            else {
                 return response()->json(['status' => 'ok'], 200);
             }
 

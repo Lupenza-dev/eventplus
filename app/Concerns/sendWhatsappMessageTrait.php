@@ -96,7 +96,7 @@ trait sendWhatsappMessageTrait
                         [
                             'type' => 'quick_reply',
                             'quick_reply' => [
-                                'id' => 'event_' . $event['id'],
+                                'id' => $event['id'],
                                 'title' => 'View Details',
                             ],
                         ],
