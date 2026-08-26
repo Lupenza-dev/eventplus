@@ -54,5 +54,6 @@ test('registration creates vendor and assigns vendor role', function () {
     $this->assertDatabaseHas('vendor_users', [
         'vendor_id' => $vendor->id,
         'user_id' => $user->id,
+        'vendor_type' => 'Vendor',
     ]);
 });

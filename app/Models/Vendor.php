@@ -40,6 +40,8 @@ class Vendor extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'vendor_users')
+            ->withPivot('vendor_type')
+            ->wherePivotNull('deleted_at')
             ->withTimestamps();
     }
 }

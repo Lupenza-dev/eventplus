@@ -40,6 +40,8 @@ class User extends Authenticatable implements PasskeyUser
     public function vendors(): BelongsToMany
     {
         return $this->belongsToMany(Vendor::class, 'vendor_users')
+            ->withPivot('vendor_type')
+            ->wherePivotNull('deleted_at')
             ->withTimestamps();
     }
 
