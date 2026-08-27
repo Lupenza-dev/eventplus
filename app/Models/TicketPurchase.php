@@ -21,11 +21,14 @@ use Illuminate\Support\Str;
  * @property string $amount
  * @property string $status
  * @property string $uuid
+ * @property bool $checked_in
+ * @property Carbon|null $checked_in_at
+ * @property int|null $checked_in_by
  * @property Carbon|null $deleted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['event_id', 'event_ticket_id', 'payment_partner_id', 'email', 'phone_number', 'amount', 'status', 'uuid'])]
+#[Fillable(['event_id', 'event_ticket_id', 'payment_partner_id', 'email', 'phone_number', 'amount', 'status', 'uuid', 'checked_in', 'checked_in_at', 'checked_in_by'])]
 class TicketPurchase extends Model
 {
     /** @use HasFactory<TicketPurchaseFactory> */
@@ -53,10 +56,28 @@ class TicketPurchase extends Model
         return $this->belongsTo(PaymentPartner::class);
     }
 
+    public function checkedInBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checked_in_by');
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function hasSuccessfulPayment(): bool
+    {
+        return (float) $this->amount === 0.0
+            || in_array($this->status, ['paid', 'completed', 'successful'], true);
+    }
+
     protected function casts(): array
     {
         return [
             'amount' => 'decimal:2',
+            'checked_in' => 'boolean',
+            'checked_in_at' => 'datetime',
         ];
     }
 }

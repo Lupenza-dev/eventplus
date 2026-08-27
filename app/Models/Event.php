@@ -88,6 +88,11 @@ class Event extends Model
         return $this->hasMany(EventTicket::class);
     }
 
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(TicketPurchase::class);
+    }
+
     protected function casts(): array
     {
         return [
