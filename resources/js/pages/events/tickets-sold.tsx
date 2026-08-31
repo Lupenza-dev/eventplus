@@ -11,7 +11,13 @@ import {
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -36,11 +42,14 @@ type EventOption = {
 
 type SaleItem = {
     id: number;
-    customer_name: string;
+    email: string;
     phone_number: string | null;
     event_title: string;
     vendor_name: string;
-    is_attending: boolean;
+    ticket_name: string;
+    amount: number;
+    status: string;
+    checked_in: boolean;
     sold_at: string;
 };
 
@@ -65,7 +74,7 @@ type Filters = {
 
 type Stats = {
     total: number;
-    attending: number;
+    checked_in: number;
     events: number;
     vendors: number;
 };
@@ -86,6 +95,10 @@ function formatDate(value: string): string {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function formatCurrency(value: number): string {
+    return `TZS ${value.toLocaleString('en-US')}`;
 }
 
 function StatCard({
@@ -110,7 +123,13 @@ function StatCard({
     );
 }
 
-export default function TicketsSold({ sales, stats, events, vendors, filters }: Props) {
+export default function TicketsSold({
+    sales,
+    stats,
+    events,
+    vendors,
+    filters,
+}: Props) {
     const [dateFrom, setDateFrom] = useState(filters.date_from);
     const [dateTo, setDateTo] = useState(filters.date_to);
     const [vendorId, setVendorId] = useState(filters.vendor_id);
@@ -147,10 +166,14 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
         setVendorId('');
         setEventId('');
 
-        router.get(ticketsSold.url(), {}, {
-            preserveState: true,
-            only: ['sales', 'stats', 'events', 'filters'],
-        });
+        router.get(
+            ticketsSold.url(),
+            {},
+            {
+                preserveState: true,
+                only: ['sales', 'stats', 'events', 'filters'],
+            },
+        );
     }
 
     return (
@@ -159,9 +182,12 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl font-semibold tracking-tight">Tickets Sold</h1>
+                        <h1 className="text-xl font-semibold tracking-tight">
+                            Tickets Sold
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Track ticket sales across events, vendors and date ranges.
+                            Track ticket sales across events, vendors and date
+                            ranges.
                         </p>
                     </div>
                 </div>
@@ -169,7 +195,10 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                 <Card className="py-5">
                     <CardHeader className="gap-1 px-5">
                         <CardTitle className="flex items-center gap-2 text-base">
-                            <CalendarRange className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                            <CalendarRange
+                                className="h-4 w-4 text-muted-foreground"
+                                aria-hidden="true"
+                            />
                             Filters
                         </CardTitle>
                         <CardDescription>
@@ -185,7 +214,9 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                     type="date"
                                     value={dateFrom}
                                     max={dateTo || undefined}
-                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    onChange={(e) =>
+                                        setDateFrom(e.target.value)
+                                    }
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -203,7 +234,9 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                 <Select
                                     value={vendorId}
                                     onValueChange={(value) => {
-                                        setVendorId(value);
+                                        setVendorId(
+                                            value === 'all' ? '' : value,
+                                        );
                                         setEventId('');
                                     }}
                                 >
@@ -211,9 +244,14 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                         <SelectValue placeholder="All vendors" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All vendors</SelectItem>
+                                        <SelectItem value="all">
+                                            All vendors
+                                        </SelectItem>
                                         {vendors.map((vendor) => (
-                                            <SelectItem key={vendor.id} value={String(vendor.id)}>
+                                            <SelectItem
+                                                key={vendor.id}
+                                                value={String(vendor.id)}
+                                            >
                                                 {vendor.name}
                                             </SelectItem>
                                         ))}
@@ -225,15 +263,22 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                 <Select
                                     value={eventId}
                                     disabled={events.length === 0}
-                                    onValueChange={setEventId}
+                                    onValueChange={(value) =>
+                                        setEventId(value === 'all' ? '' : value)
+                                    }
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="All events" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All events</SelectItem>
+                                        <SelectItem value="all">
+                                            All events
+                                        </SelectItem>
                                         {events.map((event) => (
-                                            <SelectItem key={event.id} value={String(event.id)}>
+                                            <SelectItem
+                                                key={event.id}
+                                                value={String(event.id)}
+                                            >
                                                 {event.title}
                                             </SelectItem>
                                         ))}
@@ -243,28 +288,53 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                         </div>
                         <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                             <Button variant="outline" onClick={resetFilters}>
-                                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                                <RotateCcw
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                />
                                 Reset
                             </Button>
                             <Button onClick={applyFilters}>
-                                <Search className="h-4 w-4" aria-hidden="true" />
+                                <Search
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                />
                                 Apply filters
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard icon={Ticket} label="Tickets sold" value={stats.total} />
-                    <StatCard icon={Users} label="Attending" value={stats.attending} />
-                    <StatCard icon={CalendarDays} label="Events" value={stats.events} />
-                    <StatCard icon={Building2} label="Vendors" value={stats.vendors} />
-                </div> */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                        icon={Ticket}
+                        label="Tickets sold"
+                        value={stats.total}
+                    />
+                    <StatCard
+                        icon={Users}
+                        label="Checked in"
+                        value={stats.checked_in}
+                    />
+                    <StatCard
+                        icon={CalendarDays}
+                        label="Events"
+                        value={stats.events}
+                    />
+                    <StatCard
+                        icon={Building2}
+                        label="Vendors"
+                        value={stats.vendors}
+                    />
+                </div>
 
                 {sales.total === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-12 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            <Ticket className="h-6 w-6 text-primary" aria-hidden="true" />
+                            <Ticket
+                                className="h-6 w-6 text-primary"
+                                aria-hidden="true"
+                            />
                         </span>
                         <p className="font-medium">No tickets sold</p>
                         <p className="max-w-sm text-sm text-muted-foreground">
@@ -277,12 +347,30 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b bg-muted/50 text-left">
-                                        <th className="px-4 py-3 font-medium">Customer</th>
-                                        <th className="px-4 py-3 font-medium">Phone</th>
-                                        <th className="px-4 py-3 font-medium">Event</th>
-                                        <th className="px-4 py-3 font-medium">Vendor</th>
-                                        <th className="px-4 py-3 font-medium">Status</th>
-                                        <th className="px-4 py-3 font-medium">Sold at</th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Buyer
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Phone
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Event
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Ticket
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Vendor
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Amount
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Status
+                                        </th>
+                                        <th className="px-4 py-3 font-medium">
+                                            Sold at
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -292,26 +380,34 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                             className="border-b transition-colors last:border-b-0 hover:bg-muted/30"
                                         >
                                             <td className="px-4 py-3 font-medium">
-                                                {sale.customer_name}
+                                                {sale.email}
                                             </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {sale.phone_number ?? '—'}
                                             </td>
-                                            <td className="px-4 py-3">{sale.event_title}</td>
+                                            <td className="px-4 py-3">
+                                                {sale.event_title}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {sale.ticket_name}
+                                            </td>
                                             <td className="px-4 py-3 text-muted-foreground">
                                                 {sale.vendor_name}
                                             </td>
                                             <td className="px-4 py-3">
-                                                {sale.is_attending ? (
+                                                {formatCurrency(sale.amount)}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {sale.checked_in ? (
                                                     <Badge className="bg-[#00B894]/15 text-[#00B894] hover:bg-[#00B894]/15">
-                                                        Attending
+                                                        Checked in
                                                     </Badge>
                                                 ) : (
                                                     <Badge
                                                         variant="secondary"
                                                         className="text-muted-foreground"
                                                     >
-                                                        Not attending
+                                                        {sale.status}
                                                     </Badge>
                                                 )}
                                             </td>
@@ -331,7 +427,9 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                     {sales.from}–{sales.to}
                                 </span>{' '}
                                 of{' '}
-                                <span className="font-medium text-foreground">{sales.total}</span>{' '}
+                                <span className="font-medium text-foreground">
+                                    {sales.total}
+                                </span>{' '}
                                 results
                             </p>
                             <div className="flex items-center gap-2">
@@ -341,7 +439,11 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                     disabled={!sales.prev_page_url}
                                     onClick={() =>
                                         sales.prev_page_url &&
-                                        router.get(sales.prev_page_url, {}, { preserveState: true })
+                                        router.get(
+                                            sales.prev_page_url,
+                                            {},
+                                            { preserveState: true },
+                                        )
                                     }
                                 >
                                     Previous
@@ -352,7 +454,11 @@ export default function TicketsSold({ sales, stats, events, vendors, filters }: 
                                     disabled={!sales.next_page_url}
                                     onClick={() =>
                                         sales.next_page_url &&
-                                        router.get(sales.next_page_url, {}, { preserveState: true })
+                                        router.get(
+                                            sales.next_page_url,
+                                            {},
+                                            { preserveState: true },
+                                        )
                                     }
                                 >
                                     Next

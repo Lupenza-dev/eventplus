@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\TicketGenerator;
 use App\Models\Event;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class WelcomeController extends Controller
 {
+    use TicketGenerator;
+
     public function index(): Response
     {
+        // return $this->generateTicket(1);
         $events = Event::query()
             ->where('is_active', true)
             // ->where('is_approved', 1)

@@ -100,7 +100,12 @@ class UserController extends Controller
         $this->ensureUserIsManageable($authenticatedUser, $user);
 
         return Inertia::render('users/edit', [
-            'user' => $user->only(['id', 'name', 'email', 'phone']),
+            'user' => [
+                ...$user->only(['id', 'name', 'email', 'phone']),
+                'role' => $user->roles()->value('name'),
+            ],
+            'roles' => $this->availableRoleNames($authenticatedUser),
+            'can_manage_permissions' => $authenticatedUser->hasRole('Admin'),
             'userPermissions' => $user->permissions()->pluck('name'),
             'permissions' => Permission::query()->orderBy('name')->pluck('name'),
         ]);
@@ -125,9 +130,26 @@ class UserController extends Controller
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'phone' => ['nullable', 'string', 'max:20'],
+            'role' => ['required', 'string', Rule::in($this->availableRoleNames($authenticatedUser))],
         ]);
 
-        $user->update($validated);
+        DB::transaction(function () use ($authenticatedUser, $user, $validated): void {
+            $user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+            ]);
+            $user->syncRoles($validated['role']);
+
+            if ($this->isVendorUser($authenticatedUser)) {
+                $vendor = $authenticatedUser->vendors()->firstOrFail();
+                $membership = VendorUser::withTrashed()->updateOrCreate(
+                    ['vendor_id' => $vendor->id, 'user_id' => $user->id],
+                    ['vendor_type' => $validated['role']],
+                );
+                $membership->restore();
+            }
+        });
 
         return back()->with('toast', ['type' => 'success', 'message' => 'User updated.']);
     }
@@ -139,6 +161,8 @@ class UserController extends Controller
     {
         /** @var User $authenticatedUser */
         $authenticatedUser = $request->user();
+
+        abort_unless($authenticatedUser->hasRole('Admin'), 403);
 
         $this->ensureUserIsManageable($authenticatedUser, $user);
 

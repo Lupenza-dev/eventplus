@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Bot,
     CalendarDays,
@@ -24,6 +24,7 @@ import { botSettings, dashboard, systemSettings, ticketsSold } from '@/routes';
 import { index as eventsIndex } from '@/routes/events';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
+import type { Auth } from '@/types/auth';
 
 const mainNavItems: NavItem[] = [
     {
@@ -43,12 +44,15 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const adminNavItems: NavItem[] = [
+const managementNavItems: NavItem[] = [
     {
         title: 'Users',
         href: usersIndex(),
         icon: Users,
     },
+];
+
+const adminNavItems: NavItem[] = [
     {
         title: 'Bot Settings',
         href: botSettings(),
@@ -75,6 +79,8 @@ const adminNavItems: NavItem[] = [
 // ];
 
 export function AppSidebar() {
+    const { auth } = usePage<{ auth: Auth }>().props;
+
     return (
         <Sidebar
             collapsible="icon"
@@ -106,10 +112,16 @@ export function AppSidebar() {
             <SidebarContent className="gap-1 px-1 py-2">
                 <NavMain items={mainNavItems} label="Workspace" />
                 <SidebarSeparator className="mx-3 my-1 w-auto opacity-60" />
-                <NavMain items={adminNavItems} label="Administration" />
+                <NavMain items={managementNavItems} label="Management" />
+                {auth.is_admin && (
+                    <>
+                        <SidebarSeparator className="mx-3 my-1 w-auto opacity-60" />
+                        <NavMain items={adminNavItems} label="Administration" />
+                    </>
+                )}
             </SidebarContent>
 
-            <SidebarFooter className="p-3 pt-2">
+            {/* <SidebarFooter className="p-3 pt-2">
                 <div className="relative overflow-hidden rounded-xl border border-sidebar-border bg-background/60 p-3 shadow-sm group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
                     <div className="absolute -top-6 -right-6 size-16 rounded-full bg-primary/10 blur-xl" />
                     <div className="relative flex items-center gap-2.5">
@@ -120,17 +132,17 @@ export function AppSidebar() {
                             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-30 motion-reduce:animate-none" />
                             <span className="relative inline-flex size-2.5 rounded-full border-2 border-background bg-primary" />
                         </span>
-                        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                        {/* <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                             <p className="truncate text-xs font-semibold text-sidebar-foreground">
                                 Event operations
                             </p>
                             <p className="truncate text-[11px] text-muted-foreground">
                                 Manage events and sales
                             </p>
-                        </div>
-                    </div>
+                        </div> */}
+            {/* </div>
                 </div>
-            </SidebarFooter>
+            </SidebarFooter> */}
             <SidebarRail />
         </Sidebar>
     );

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\TicketPurchaseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,7 @@ use Illuminate\Support\Str;
  * @property string $amount
  * @property string $status
  * @property string $uuid
+ * @property string|null $ticket_path
  * @property bool $checked_in
  * @property Carbon|null $checked_in_at
  * @property int|null $checked_in_by
@@ -28,7 +30,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['event_id', 'event_ticket_id', 'payment_partner_id', 'email', 'phone_number', 'amount', 'status', 'uuid', 'checked_in', 'checked_in_at', 'checked_in_by'])]
+#[Fillable(['event_id', 'event_ticket_id', 'payment_partner_id', 'email', 'phone_number', 'amount', 'status', 'uuid', 'ticket_path', 'checked_in', 'checked_in_at', 'checked_in_by'])]
 class TicketPurchase extends Model
 {
     /** @use HasFactory<TicketPurchaseFactory> */
@@ -70,6 +72,20 @@ class TicketPurchase extends Model
     {
         return (float) $this->amount === 0.0
             || in_array($this->status, ['paid', 'completed', 'successful'], true);
+    }
+
+    /**
+     * Limit a query to free tickets and purchases with a confirmed payment.
+     *
+     * @param  Builder<TicketPurchase>  $query
+     * @return Builder<TicketPurchase>
+     */
+    public function scopeSuccessfulPayment(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->where('amount', 0)
+                ->orWhereIn('status', ['paid', 'completed', 'successful']);
+        });
     }
 
     protected function casts(): array

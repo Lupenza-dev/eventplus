@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\EventSubscriber;
+use App\Models\TicketPurchase;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,7 +12,7 @@ use Inertia\Response;
 class TicketSoldController extends Controller
 {
     /**
-     * Display tickets sold (event subscriptions) with filters.
+     * Display confirmed ticket purchases with filters.
      */
     public function index(Request $request): Response
     {
@@ -22,18 +22,23 @@ class TicketSoldController extends Controller
             'event_id' => ['nullable', 'integer', 'exists:events,id'],
             'vendor_id' => ['nullable', 'integer', 'exists:vendors,id'],
         ]);
+        $user = $request->user();
+        $vendorIds = $user->vendors()->select('vendors.id');
+        $isAdmin = $user->hasRole('Admin');
 
-        $sales = EventSubscriber::query()
+        $sales = TicketPurchase::query()
+            ->successfulPayment()
+            ->when(! $isAdmin, fn ($query) => $query->whereHas('event', fn ($events) => $events->whereIn('vendor_id', $vendorIds)))
             ->with([
                 'event:id,title,vendor_id',
                 'event.vendor:id,name',
-                'subscriber:id,name,phone_number',
+                'ticket:id,name',
             ])
-            ->when($filters['date_from'] ?? null, fn ($query, $from) => $query->whereDate('event_subscribers.created_at', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn ($query, $to) => $query->whereDate('event_subscribers.created_at', '<=', $to))
+            ->when($filters['date_from'] ?? null, fn ($query, $from) => $query->whereDate('ticket_purchases.created_at', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($query, $to) => $query->whereDate('ticket_purchases.created_at', '<=', $to))
             ->when($filters['event_id'] ?? null, fn ($query, $eventId) => $query->where('event_id', $eventId))
             ->when($filters['vendor_id'] ?? null, fn ($query, $vendorId) => $query->whereHas('event', fn ($events) => $events->where('vendor_id', $vendorId)))
-            ->latest('event_subscribers.created_at');
+            ->latest('ticket_purchases.created_at');
 
         $salesQuery = fn () => (clone $sales);
 
@@ -41,7 +46,7 @@ class TicketSoldController extends Controller
 
         $stats = [
             'total' => $salesQuery()->count(),
-            'attending' => $salesQuery()->where('is_attending', true)->count(),
+            'checked_in' => $salesQuery()->where('checked_in', true)->count(),
             'events' => $salesQuery()->distinct('event_id')->count('event_id'),
             'vendors' => Event::query()->whereIn('id', $eventIds)->distinct()->count('vendor_id'),
         ];
@@ -49,21 +54,28 @@ class TicketSoldController extends Controller
         $paginator = $sales->paginate(25)->withQueryString();
 
         return Inertia::render('events/tickets-sold', [
-            'sales' => $paginator->through(fn (EventSubscriber $sale) => [
+            'sales' => $paginator->through(fn (TicketPurchase $sale) => [
                 'id' => $sale->id,
-                'customer_name' => $sale->subscriber->name ?? '—',
-                'phone_number' => $sale->subscriber->phone_number,
+                'email' => $sale->email,
+                'phone_number' => $sale->phone_number,
                 'event_title' => $sale->event->title,
                 'vendor_name' => $sale->event->vendor->name ?? '—',
-                'is_attending' => $sale->is_attending,
+                'ticket_name' => $sale->ticket->name,
+                'amount' => (float) $sale->amount,
+                'status' => $sale->status,
+                'checked_in' => $sale->checked_in,
                 'sold_at' => $sale->created_at->toDateTimeString(),
             ]),
             'stats' => $stats,
             'events' => Event::query()
+                ->when(! $isAdmin, fn ($query) => $query->whereIn('vendor_id', $vendorIds))
                 ->when($filters['vendor_id'] ?? null, fn ($query, $vendorId) => $query->where('vendor_id', $vendorId))
                 ->orderBy('title')
                 ->get(['id', 'title', 'vendor_id']),
-            'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
+            'vendors' => Vendor::query()
+                ->when(! $isAdmin, fn ($query) => $query->whereIn('id', $vendorIds))
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'filters' => [
                 'date_from' => $filters['date_from'] ?? '',
                 'date_to' => $filters['date_to'] ?? '',

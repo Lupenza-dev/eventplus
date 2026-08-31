@@ -19,7 +19,10 @@ class EventController extends Controller
     {
         return Inertia::render('events/index', [
             'events' => Event::query()
-                ->where('user_id', $request->user()->id)
+                ->when(
+                    ! $request->user()->hasRole('Admin'),
+                    fn ($query) => $query->whereIn('vendor_id', $request->user()->vendors()->select('vendors.id')),
+                )
                 ->with('category:id,name')
                 ->latest()
                 ->get([

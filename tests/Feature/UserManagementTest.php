@@ -155,20 +155,24 @@ test('users must select a valid role when creating a user', function () {
 test('users can update a user', function () {
     $user = User::factory()->create();
     $target = User::factory()->create();
+    Role::findOrCreate('App User', 'web');
 
     $response = $this->actingAs($user)->put(route('users.update', $target), [
         'name' => 'Updated Name',
         'email' => $target->email,
         'phone' => '+255700000000',
+        'role' => 'App User',
     ]);
 
     $response->assertRedirect();
     expect($target->fresh()->name)->toBe('Updated Name');
     expect($target->fresh()->phone)->toBe('+255700000000');
+    expect($target->fresh()->hasRole('App User'))->toBeTrue();
 });
 
 test('users can assign permissions to a user', function () {
     $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate('Admin', 'web'));
     $target = User::factory()->create();
     $permission = Permission::firstOrCreate(['name' => 'view events', 'guard_name' => 'web']);
 
@@ -183,6 +187,7 @@ test('users can assign permissions to a user', function () {
 
 test('users can unassign permissions from a user', function () {
     $user = User::factory()->create();
+    $user->assignRole(Role::findOrCreate('Admin', 'web'));
     $target = User::factory()->create();
     $target->givePermissionTo(
         Permission::firstOrCreate(['name' => 'delete events', 'guard_name' => 'web']),
@@ -194,6 +199,15 @@ test('users can unassign permissions from a user', function () {
     );
 
     expect($target->fresh()->permissions)->toHaveCount(0);
+});
+
+test('non-admin users cannot update permissions', function () {
+    $user = User::factory()->create();
+    $target = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('users.permissions.sync', $target), ['permissions' => []])
+        ->assertForbidden();
 });
 
 test('users cannot delete their own account', function () {

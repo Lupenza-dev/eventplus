@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
-use App\Models\EventSubscriber;
+use App\Models\TicketPurchase;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,14 +20,18 @@ class DashboardController extends Controller
         ]);
 
         $year = isset($validated['year']) ? (int) $validated['year'] : null;
+        $user = $request->user();
+        $vendorIds = $user->vendors()->select('vendors.id');
+        $isAdmin = $user->hasRole('Admin');
 
-        $yearExpression = match (EventSubscriber::query()->getConnection()->getDriverName()) {
+        $yearExpression = match (TicketPurchase::query()->getConnection()->getDriverName()) {
             'sqlite' => "strftime('%Y', created_at)",
             'pgsql' => 'EXTRACT(YEAR FROM created_at)',
             default => 'YEAR(created_at)',
         };
 
-        $years = EventSubscriber::query()
+        $years = TicketPurchase::query()
+            ->when(! $isAdmin, fn ($query) => $query->whereHas('event', fn ($events) => $events->whereIn('vendor_id', $vendorIds)))
             ->selectRaw("{$yearExpression} as year")
             ->distinct()
             ->orderByDesc('year')
@@ -36,13 +40,15 @@ class DashboardController extends Controller
             ->values()
             ->whenEmpty(fn ($collection) => $collection->push(now()->year));
 
-        $subscriptions = EventSubscriber::query()
-            ->when($year, fn ($query) => $query->whereYear('event_subscribers.created_at', $year));
+        $purchases = TicketPurchase::query()
+            ->successfulPayment()
+            ->when(! $isAdmin, fn ($query) => $query->whereHas('event', fn ($events) => $events->whereIn('vendor_id', $vendorIds)))
+            ->when($year, fn ($query) => $query->whereYear('ticket_purchases.created_at', $year));
 
-        $chart = (clone $subscriptions)
-            ->selectRaw('events.id, events.title, COUNT(*) as tickets')
-            ->join('events', 'events.id', '=', 'event_subscribers.event_id')
-            ->whereNull('event_subscribers.deleted_at')
+        $chart = (clone $purchases)
+            ->selectRaw('events.id, events.title, COUNT(*) as tickets, COALESCE(SUM(ticket_purchases.amount), 0) as payment')
+            ->join('events', 'events.id', '=', 'ticket_purchases.event_id')
+            ->whereNull('ticket_purchases.deleted_at')
             ->groupBy('events.id', 'events.title')
             ->orderByDesc('tickets')
             ->limit(8)
@@ -51,16 +57,17 @@ class DashboardController extends Controller
                 'id' => $row->id,
                 'event' => $row->title,
                 'tickets' => (int) $row->tickets,
-                'payment' => (int) ($row->tickets * 75 + (($row->id * 37) % 500)),
+                'payment' => (float) $row->payment,
             ]);
 
         $stats = [
             'events' => Event::query()
+                ->when(! $isAdmin, fn ($query) => $query->whereIn('vendor_id', $vendorIds))
                 ->when($year, fn ($query) => $query->whereYear('events.created_at', $year))
                 ->count(),
-            'tickets_sold' => (clone $subscriptions)->count(),
-            'payment_collected' => $chart->sum('payment'),
-            'attendees' => (clone $subscriptions)->where('is_attending', true)->count(),
+            'tickets_sold' => (clone $purchases)->count(),
+            'payment_collected' => (float) (clone $purchases)->sum('amount'),
+            'attendees' => (clone $purchases)->where('checked_in', true)->count(),
         ];
 
         return Inertia::render('dashboard', [
