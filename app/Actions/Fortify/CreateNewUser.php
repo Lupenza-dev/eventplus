@@ -46,6 +46,7 @@ class CreateNewUser implements CreatesNewUsers
             VendorUser::create([
                 'vendor_id' => $vendor->id,
                 'user_id' => $user->id,
+                'vendor_type' => 'Vendor',
             ]);
 
             $user->assignRole('Vendor');
