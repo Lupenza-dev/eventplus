@@ -29,7 +29,9 @@ trait WhatsappProcessMessageTrait
             ->latest()->first();
         // if log exist means chat is still open and we can continue the conversation, else we can start a new conversation
         if ($log) {
-            $next_thread =ThreadLink::with('linkedThread')->where('thread_id',$log->thread_id)->first();
+            $next_thread =ThreadLink::with('linkedThread','thread')->where('thread_id',$log->thread_id)->first();
+            Log::info('next thread');
+            Log::info($next_thread);
             if($next_thread){
                 //heck type of message
 
@@ -38,11 +40,11 @@ trait WhatsappProcessMessageTrait
                     // Log::info($next_thread->linkedThread);
                if($type_of_message == "text"){
 
-               $builded_message = $this->botStepManagement($next_thread->linkedThread,$body,$reply_id);
+               $builded_message = $this->botStepManagement($next_thread->linkedThread,$body,$reply_id,$phone_number);
                Log::info('builded');
                Log::info($builded_message);
 
-               $this->createUserLog($phone_number, 'thread_initiated', $body, $next_thread->linkedThread->close_thread);
+                $this->createUserLog($phone_number,$next_thread?->thread?->label, $reply_id ?? $body, $next_thread->linkedThread->close_thread);
                $this->createBotLog($phone_number,$message_id,$body,$reply_id,$next_thread->linkedThread->step,$next_thread->linkedThread->id,$type,$next_thread->linkedThread->close_thread);
 
                if($builded_message['type'] == 'text'){
@@ -56,7 +58,9 @@ trait WhatsappProcessMessageTrait
                 $message_response = $this->botStepManagementForCarousel($next_thread->linkedThread,$body);
                 // if count = 2 means carousel
                 if ($message_response['count'] == 2) {
-                    $this->createUserLog($phone_number, 'thread_initiated', $body, $next_thread->linkedThread->close_thread);
+                    // $this->createUserLog($phone_number, 'thread_initiated', $body, $next_thread->linkedThread->close_thread);
+                    $this->createUserLog($phone_number,$next_thread?->thread?->label, $body, $next_thread->linkedThread->close_thread);
+
                     $this->createBotLog($phone_number,$message_id,$body,$reply_id,$next_thread->linkedThread->step,$next_thread->linkedThread->id,$type,$next_thread->linkedThread->close_thread);
      
                     $this->carouselSms($phone_number,$message_response['message']);
@@ -67,16 +71,29 @@ trait WhatsappProcessMessageTrait
                }
 
             }else{
-                //No thread
+                //its already finished  fetch last thread to store user log and close
+                $last_thread =Thread::find($log->thread_id);
+                Log::info('last thread');
+                Log::info($last_thread);
+                if($last_thread){
+                 $this->createUserLog($phone_number,$last_thread->label, $body, $last_thread->close_thread);
+                }
+
+
+                return response()->json(['status' => 'ok'], 200);
+
+
             }
         } else {
             // # new thread
             $thread = Thread::with('responses')->where('step', 1)->first();
-            $this->createUserLog($phone_number, 'thread_initiated', $body, $thread->close_thread);
+            $this->closeUserLog($phone_number);
+           // $this->createUserLog($phone_number, 'thread_initiated', $body, $thread->close_thread);
 
             $message   =$thread->title_eng;
            // $button_label  ="Event Categories";
             //$responses =EventCategory::get(['id','name'])->toArray();;
+            $this->createUserLog($phone_number,"initiate", $body,$thread->close_thread);
 
             $this->createBotLog($phone_number,$message_id,$body,$reply_id,$thread->step,$thread->id,$type,$thread->close_thread);
             $this->textSms($phone_number,$message);
@@ -132,14 +149,11 @@ trait WhatsappProcessMessageTrait
 
     public function closeUserLog(int $phone_number)
     {
-        $log = BotUserLog::where('phone_number', $phone_number)->where('is_active', true)->latest()->first();
-        if ($log) {
-            $log->is_active = false;
-            $log->save();
-        }
-
+        BotUserLog::where('phone_number', $phone_number)
+            ->where('is_active', true)
+            ->update(['is_active' => false]);
+    
         return true;
-
     }
 
     public function clearLogs(int $phone_number)

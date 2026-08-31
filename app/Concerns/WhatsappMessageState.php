@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Models\BotUserLog;
 use App\Models\Event;
 use App\Models\EventCategory;
 use App\Models\EventTicket;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 trait WhatsappMessageState
 {
-    public function botStepManagement(Thread $thread, $body = null, $reply_id = null)
+    public function botStepManagement(Thread $thread, $body = null, $reply_id = null, $phone_number = null)
     {
 
         switch ($thread->step) {
@@ -72,7 +73,18 @@ trait WhatsappMessageState
 
                 break;
             case 6:
-                $message = $thread->title_eng;
+                //$message = $thread->title_eng;
+                // construct order summary
+                $result =$this->buildOrderSummary($phone_number,$body);
+                $summary = "Event: " . $result['event'] . "\n"
+                . "Ticket: " . $result['ticket'] . "\n"
+                . "Quantity: " . $result['quantity'] . "\n"
+                . "Price: TZS " . number_format($result['price']) . " each\n"
+                . "Total: TZS " . number_format($result['total']);
+
+                $message = str_replace('##event_summary##', $summary, $thread->title_eng);
+
+
                 return [
                     'type' => 'text',
                     'data' => $message
@@ -151,5 +163,27 @@ trait WhatsappMessageState
                 'message' => "Currently No Event "
             ];
         }
+    }
+
+    public function buildOrderSummary(int $phone_number,int $quantityFrom)
+    {
+        $user_log = BotUserLog::where(['phone_number' => $phone_number, 'is_active' => true])
+            ->latest()
+            ->first();
+
+        $log = json_decode($user_log->log, true);
+        // $event_id =int $log['event_name'];
+        $event = Event::find($log['event_name']);
+        $ticket = EventTicket::find($log['event_ticket']);
+        $quantity = (int) $quantityFrom;
+        $total = $ticket->price * $quantity;
+
+        return [
+            'event' => $event->title,
+            'ticket' => $ticket->name,
+            'quantity' => $quantity,
+            'price' => $ticket->price,
+            'total' => $total,
+        ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Concerns\GeminiAiTrait;
 use App\Concerns\WhatsappProcessMessageTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsappController extends Controller
 {
-    use WhatsappProcessMessageTrait;
+    use WhatsappProcessMessageTrait,GeminiAiTrait;
 
     public function verifyWebhook(Request $request)
     {
@@ -32,10 +33,10 @@ class WhatsappController extends Controller
 
     public function processMessage(Request $request)
     {
-        Log::info('process');
-        Log::debug($request->all());
+       // Log::info('process');
+       // Log::debug($request->all());
         $response = json_decode(file_get_contents('php://input'), true);
-        Log::debug($response);
+       // Log::debug($response);
 
         if (array_key_exists('messages', $response['entry'][0]['changes'][0]['value'])) {
 
@@ -72,7 +73,8 @@ class WhatsappController extends Controller
                 return response()->json(['status' => 'ok'], 200);
             }
 
-            return $this->analyseMessage($phone_number, $message_id, $type, $body, $reply_id);
+            return $this->sendRequest($body,$phone_number);
+           // return $this->analyseMessage($phone_number, $message_id, $type, $body, $reply_id);
         }
     }
 }
