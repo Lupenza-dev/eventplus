@@ -52,6 +52,8 @@ trait WhatsappProcessMessageTrait
                 $this->textSms($phone_number,$builded_message['data']);
                }else if ($builded_message['type'] == 'interactive'){
                     $this->interactiveSms($phone_number, $builded_message['header_text'],$builded_message['button_label'], $builded_message['data']);
+               }else if($builded_message['type'] == 'address'){
+                $this->addressMessage($phone_number);
                }
               
                }else if ($type_of_message == "carousel"){
@@ -64,9 +66,14 @@ trait WhatsappProcessMessageTrait
                     $this->createBotLog($phone_number,$message_id,$body,$reply_id,$next_thread->linkedThread->step,$next_thread->linkedThread->id,$type,$next_thread->linkedThread->close_thread);
      
                     $this->carouselSms($phone_number,$message_response['message']);
-                } else {
-                    # code...
+                } 
+                else if($message_response['count'] == 0) {
+                    $this->textSms($phone_number,$message_response['message']);
                 }
+                else if($message_response['count'] == 1) {
+                    $this->imageSms($phone_number,$message_response['message']);
+                }
+                
                 
                }
 

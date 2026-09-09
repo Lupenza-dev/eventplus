@@ -21,7 +21,8 @@ class ThreadLabelSeeder extends Seeder
             'order_summary',
             'payment_method',
             'phone_number',
-            'event_ticket'
+            'event_ticket',
+            'searched_event_name'
         ];
 
         foreach ($labels as $label) {

@@ -31,8 +31,57 @@ trait WhatsappMessageState
                         'type' => 'text',
                         'data' => $message
                     ];
-                } else {
-                    # code...
+                }else if($body == 2){
+                    // search event
+                    $thread =Thread::where('step',9)->first();
+                    return [
+                        'type' => 'text',
+                        'data' => $thread->title_eng
+                    ];
+                }
+                else if($body == 3){
+                    // my ticket
+                    return [
+                        'type' => 'text',
+                        'data' => "Currently you dont have any ticket"
+                    ];
+                }
+                else if($body == 4){
+                    // how event work
+                    $message ="EventPlus makes it easy to discover events and buy tickets directly through WhatsApp.
+
+1️⃣ *Find an Event*
+Browse available events or search by event name.
+
+2️⃣ *Choose Your Ticket*
+Select the event, ticket type, and number of tickets you want.
+
+3️⃣ *Make Payment*
+Choose your preferred payment method and complete the payment.
+
+4️⃣ *Receive Your Ticket*
+After successful payment, your digital ticket will be sent to you on WhatsApp.
+
+5️⃣ *Attend the Event*
+Present your ticket QR code at the entrance for verification.";
+                    return [
+                        'type' => 'text',
+                        'data' => $message
+                    ];
+                }
+                else if($body == 5){
+                    // contact support
+                    return [
+                        'type' => 'address',
+                        'data' => "company address"
+                    ];
+                }
+                 else {
+                    
+                    return [
+                        'type' => 'text',
+                        'data'=> $this->wrongChoiseMessage();
+                    ]
                 }
 
                 break;
@@ -133,8 +182,15 @@ trait WhatsappMessageState
 
     public function botStepManagementForCarousel(Thread $thread, $body = null)
     {
-
-        $events = Event::where('event_category_id', $body)->get();
+        // check that selection of category its valid
+        $event_category =EventCategory::find($body);
+        if (!$event_category) {
+            return [
+                'count' =>0,
+                'message' =>$this->wrongChoiseMessage()
+            ]
+        }
+        $events = Event::where('event_category_id',$body)->get();
 
         if ($events) {
 
@@ -155,12 +211,24 @@ trait WhatsappMessageState
                     'message' => $data
                 ];
             } else {
-                # code...
+                $event = Event::where('event_category_id',$body)->first();
+                $data = [
+                    'image_url' => asset('storage/' . $event->image),
+                    'header'    => '🎫 ' . $event->title,
+                    'event_date' => '📅 ' . $event->event_date,
+                    'location'  => '📍 ' . $event->location,
+                    'id'        => $event->id
+                ];
+
+                return [
+                    'count' => 1,
+                    'message' => $data
+                ];
             }
         } else {
             return [
                 'count' => 0,
-                'message' => "Currently No Event "
+                'message' => $this->warningMessage();
             ];
         }
     }
@@ -185,5 +253,17 @@ trait WhatsappMessageState
             'price' => $ticket->price,
             'total' => $total,
         ];
+    }
+
+    public function wrongChoiseMessage(){
+        $message = "⚠️ *Oops! That's not a valid option.*\n\n"
+    . "Please reply with one of the numbers shown in the menu.\n\n";
+    return $message;
+    }
+
+    public function warningMessage(){
+        $message = "⚠️ *Oops! No event available on that category you choose.*\n\n"
+    . "Please reply with one other option shown in the menu.\n\n";
+    return $message;
     }
 }

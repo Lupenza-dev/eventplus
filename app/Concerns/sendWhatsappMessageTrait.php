@@ -150,51 +150,110 @@ trait sendWhatsappMessageTrait
     }
     
 
-    public function imageSms(int $phone_number, string $header_text, string $button_label, array $responses) {
-        $rows = [];
-        foreach ($responses as $key) {
-            $rows[] = [
-                'id' => $key->id,
-                'title' =>$key->name_eng,
-            ];
-        }
-
-        $data = [
-            "messaging_product" =>"whatsapp",
-            "recipient_type" => "individual", 
-            "to" => $phone_number,
-            "type" => "interactive",
-            "interactive" => [
-                "type" => "list",
-                "header" =>[
-                    "type" => "image",
-                    "image" =>[
-                        "id" =>asset('assets/logo.jpeg'),
-                    ]
+    public function imageSms(int $phone_number, $event)
+    {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $phone_number,
+            'type' => 'interactive',
+    
+            'interactive' => [
+                'type' => 'button',
+    
+                'header' => [
+                    'type' => 'image',
+                    'image' => [
+                        'link' => $event['image_url'],
+                    ],
                 ],
-                "body" => [
-                    "text" => $header_text,
+    
+                'body' => [
+                    'text' => $event['header'] . "\n" . $event['event_date'] . "\n" . $event['location'],
+                        
                 ],
-                "action" => [
-                    "button" => $button_label,
-                    "sections" => [
+    
+                'footer' => [
+                    'text' => 'EventPlus',
+                ],
+    
+                'action' => [
+                    'buttons' => [
                         [
-                            "title" => $button_label,
-                            "rows" => $rows,
+                            'type' => 'reply',
+                            'reply' => [
+                                'id' => $event['id'],
+                                'title' => 'View Details',
+                            ],
                         ],
                     ],
                 ],
             ],
         ];
-
-        //$json_data = json_encode($data);
-        //return $json_data;
-       // Log::debug($data);
-      // $this->createBotThread($phone_number,$header_text);
-       $response =$this->sendSms($data);
-
-       // return $response;
-
-        //return $json_data;
+    
+        return $this->sendSms($payload);
     }
+
+    public function addressMessage($phone_number)
+{
+    $payload = [
+        'messaging_product' => 'whatsapp',
+        'to' => $phone_number,
+        'type' => 'contacts',
+        'contacts' => [
+            [
+                'addresses' => [
+                    [
+                        'street' => 'Kinondoni Street',
+                        'city' => 'Dar es Salaam',
+                        'state' => 'Dar es Salaam',
+                        'zip' => '11101',
+                        'country' => 'Tanzania',
+                        'country_code' => 'TZ',
+                        'type' => 'WORK',
+                    ],
+                ],
+
+                'birthday' => '2000-01-01',
+
+                'emails' => [
+                    [
+                        'email' => 'support@eventplus.co.tz',
+                        'type' => 'WORK',
+                    ],
+                ],
+
+                'name' => [
+                    'formatted_name' => 'EventPlus Support',
+                    'first_name' => 'EventPlus',
+                    'last_name' => 'Support',
+                ],
+
+                'org' => [
+                    'company' => 'EventPlus',
+                    'department' => 'Customer Support',
+                    'title' => 'Support Team',
+                ],
+
+                'phones' => [
+                    [
+                        'phone' => '+255700000000',
+                        'type' => 'WORK',
+                    ],
+                ],
+
+                'urls' => [
+                    [
+                        'url' => 'https://eventplus.co.tz',
+                        'type' => 'WORK',
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $response =$this->sendSms($payload);
+
+   // return $payload;
+}
 }

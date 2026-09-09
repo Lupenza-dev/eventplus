@@ -73,8 +73,8 @@ class WhatsappController extends Controller
                 return response()->json(['status' => 'ok'], 200);
             }
 
-            return $this->sendRequest($body,$phone_number);
-           // return $this->analyseMessage($phone_number, $message_id, $type, $body, $reply_id);
+            //return $this->sendRequest($body,$phone_number);
+            return $this->analyseMessage($phone_number, $message_id, $type, $body, $reply_id);
         }
     }
 }
